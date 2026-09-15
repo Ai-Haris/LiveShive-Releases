@@ -52,7 +52,7 @@ The speech model (75 MB to 1.5 GB depending on your PC) downloads once on first 
 2. Run it. If Windows shows **"Windows protected your PC"**, click **More info → Run anyway**. The app is new and not code-signed yet.
 3. Open LiveShive from the desktop shortcut, paste a stream link and press **Start clipping**.
 
-Clips are saved to `Documents`-style folder `C:\Users\<you>\LiveShive`.
+Clips are saved to the `LiveShive` folder in your user folder, for example `C:\Users\you\LiveShive`.
 
 ---
 
