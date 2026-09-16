@@ -245,6 +245,36 @@
   .bar i { display: block; height: 100%; background: var(--text-2); }
   .reason:first-of-type .bar i { background: var(--lime); }
 
+
+  /* music and setup feature panels */
+  .music-card, .setup-card { display: flex; flex-direction: column; gap: 16px; }
+  .mc-head { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; }
+  .mc-name { color: var(--text); font-weight: 500; }
+  .mc-time { color: var(--text-3); font-size: 12.5px; }
+  .mc-wave { height: 92px; border-radius: 12px; background: #0A0A09; border: 1px solid var(--line);
+             display: flex; align-items: center; gap: 2px; padding: 0 10px; overflow: hidden; position: relative; }
+  .mc-wave i { flex: 1; border-radius: 2px; background: #3A3A36; }
+  .mc-wave i.on { background: var(--lime); }
+  .mc-row { display: flex; align-items: center; gap: 14px; font-size: 13.5px; color: var(--text-2); }
+  .mc-label { flex: 1; }
+  .mc-track { width: 42%; height: 4px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
+  .mc-track i { display: block; height: 100%; background: var(--lime); }
+  .mc-val { color: var(--lime); font-size: 12.5px; min-width: 34px; text-align: right; }
+  .mc-switch { width: 38px; height: 22px; border-radius: 11px; background: var(--lime); position: relative; }
+  .mc-switch::after { content: ""; position: absolute; right: 3px; top: 3px; width: 16px; height: 16px;
+                      border-radius: 50%; background: #0A0A0A; }
+  .sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .sc-grid div { background: #0A0A09; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .sc-grid span { display: block; font-size: 11.5px; color: var(--text-3); }
+  .sc-grid b { display: block; font-size: 15px; font-weight: 600; margin-top: 3px; }
+  .sc-item { display: grid; grid-template-columns: 22px 1fr auto; align-items: center; gap: 4px 12px;
+             font-size: 14px; color: var(--text-2); padding-top: 12px; border-top: 1px solid var(--line); }
+  .sc-item i { width: 22px; height: 22px; border-radius: 7px; background: var(--bg-3); border: 1px solid var(--line-2); }
+  .sc-item.done i { background: var(--lime); border-color: var(--lime); }
+  .sc-item em { font-style: normal; font-size: 12.5px; color: var(--text-3); }
+  .sc-item.done em { color: var(--lime); }
+  .sc-bar { grid-column: 2 / 4; height: 4px; border-radius: 3px; background: var(--line-2); overflow: hidden; }
+  .sc-bar u { display: block; height: 100%; background: var(--lime); }
   /* specs */
   .specs-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
@@ -316,7 +346,7 @@
       <a href="#requirements">Requirements</a>
       <a class="keep" href="#download">Download</a>
     </nav>
-    <span class="ver mono">v1.0.0</span>
+    <span class="ver mono">v1.1.0</span>
   </div>
 </header>
 
@@ -503,6 +533,58 @@
         </div>
       </div>
 
+
+      <div class="row reveal">
+        <div class="copy">
+          <h3>Music under your voice, not over it.</h3>
+          <p>Drop in an MP3, WAV or even an MP4 and use just the part you want. Drag the handles on the
+            waveform to trim it, set the volume, and LiveShive lowers the music whenever someone talks.</p>
+          <ul>
+            <li><span>Files</span><span>MP3, WAV, M4A, OGG, FLAC, MP4, MOV, MKV</span></li>
+            <li><span>Trim</span><span>any start and end, loops if the clip is longer</span></li>
+            <li><span>Volume</span><span>0–100%, fades in and out</span></li>
+          </ul>
+        </div>
+        <div class="panel music-card" aria-hidden="true">
+          <div class="mc-head"><span class="mc-name">lofi night drive.mp3</span><span class="mono mc-time">0:18.0 – 0:42.5</span></div>
+          <div class="mc-wave" id="mcWave"></div>
+          <div class="mc-row">
+            <span class="mc-label">Music volume</span>
+            <span class="mc-track"><i style="width:28%"></i></span>
+            <span class="mono mc-val">28%</span>
+          </div>
+          <div class="mc-row">
+            <span class="mc-label">Lower music while talking</span>
+            <span class="mc-switch"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row flip reveal">
+        <div class="copy">
+          <h3>Set up for your PC in one click.</h3>
+          <p>On first launch LiveShive checks your processor, memory, graphics card and disk, then downloads
+            only what that PC needs. NVIDIA, Intel and AMD graphics render clips on the GPU, and NVIDIA
+            cards can run the captions too.</p>
+          <ul>
+            <li><span>Video on the GPU</span><span>NVIDIA NVENC, Intel Quick Sync, AMD AMF</span></li>
+            <li><span>Captions on the GPU</span><span>NVIDIA speed pack, optional</span></li>
+            <li><span>No GPU</span><span>everything still runs on the CPU</span></li>
+          </ul>
+        </div>
+        <div class="panel setup-card" aria-hidden="true">
+          <div class="sc-grid">
+            <div><span>Processor</span><b>Ryzen 5 5600</b></div>
+            <div><span>Memory</span><b>16 GB</b></div>
+            <div><span>Graphics</span><b>RTX 3060</b></div>
+            <div><span>Mode</span><b>Power</b></div>
+          </div>
+          <div class="sc-item done"><i></i><span>Speech model · Small</span><em class="mono">Installed</em></div>
+          <div class="sc-item done"><i></i><span>Face detection model</span><em class="mono">Installed</em></div>
+          <div class="sc-item"><i></i><span>NVIDIA speed pack</span><em class="mono">64%</em>
+            <b class="sc-bar"><u style="width:64%"></u></b></div>
+        </div>
+      </div>
       <div class="row reveal">
         <div class="copy">
           <h3>Cuts that start on a hook.</h3>
@@ -545,13 +627,15 @@
             <tr><th>Memory</th><td class="mono">4–7 GB</td><td class="mono">8–15 GB</td><td class="mono">16 GB +</td></tr>
             <tr><th>Processor</th><td class="mono">2–4 threads</td><td class="mono">6–10 threads</td><td class="mono">12 threads +</td></tr>
             <tr><th>Clip quality</th><td>720p</td><td>1080p</td><td>1080p</td></tr>
+            <tr><th>Graphics card</th><td>Not needed</td><td>Used for video if present</td><td>Video, plus captions on NVIDIA</td></tr>
             <tr><th>Speech model</th><td>Base</td><td>Base, Small for Hinglish</td><td>Small, Medium for Hinglish</td></tr>
             <tr><th>System</th><td colspan="3">Windows 10 or 11, 64-bit · about 3 GB free disk space, more for long streams</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="note">The speech model downloads once the first time you clip, between 140 MB and 1.5 GB
-        depending on the mode. After that LiveShive only needs internet to record the stream.</p>
+      <p class="note">The Setup screen downloads the speech model once, between 140 MB and 1.5 GB
+        depending on the mode, plus an optional 560 MB NVIDIA speed pack. After that LiveShive only needs
+        internet to record the stream.</p>
     </div>
   </section>
 
@@ -568,7 +652,7 @@
         <div class="dl-main">
           <div>
             <h3>LiveShive for Windows</h3>
-            <p>Version 1.0.0 · released September 2026</p>
+            <p>Version 1.1.0 · released September 2026</p>
           </div>
           <div class="facts">
             <div>Size<b>242 MB</b></div>
@@ -582,7 +666,7 @@
             </a>
             <a class="link" href="https://github.com/Ai-Haris/LiveShive-Releases/releases">Release notes</a>
           </div>
-          <div class="sha mono">SHA-256 <span>44fb13bbfd59ea78572cd08b6523840f367c9434aec4f689e8c1d16e61da69b5</span></div>
+          <div class="sha mono">SHA-256 <span>e7366eb281eeb00f0d6bebc98d04a53e7ee2e3ea557c5374bb39df01dc5f821a</span></div>
         </div>
         <div class="dl-side">
           <div>
@@ -662,6 +746,18 @@
   }, { rootMargin: '0px 0px -8% 0px' });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
+
+  // Decorative waveform in the music feature panel.
+  const mc = document.getElementById('mcWave');
+  if (mc) {
+    let seed = 7;
+    const rand = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const bars = 64;
+    mc.innerHTML = Array.from({ length: bars }, (_, i) => {
+      const h = 18 + Math.round((Math.sin(i / 3.1) * 0.35 + 0.55 + rand() * 0.25) * 60);
+      return `<i class="${i >= 18 && i <= 44 ? 'on' : ''}" style="height:${Math.min(84, h)}px"></i>`;
+    }).join('');
+  }
   // Word-by-word caption in the phone: the lime box jumps to the spoken word.
   const lines = [['WATCH', 'THIS', 'CLUTCH'], ['ONE', 'VS', 'THREE'], ['LAST', 'ZONE', 'WIN']];
   const words = [...document.querySelectorAll('.scr-caption .cw')];

@@ -32,7 +32,10 @@ The installer includes everything: the engine and FFmpeg. No Python or other set
 - **Hinglish captions**: Hindi and Urdu written in Roman script; English stays English
 - **12 trending caption styles**, fully customisable in Caption Studio
 - **Finds the best moments** automatically: hooks, hype, loud reactions, clutches and headshots
-- **Runs on any PC**: detects your hardware and picks Light, Balanced or Power mode
+- **Background music**: add MP3, WAV, M4A or MP4 files, trim any part, set the volume; music dips while you talk
+- **One-click setup**: detects your CPU, RAM and GPU, then downloads only what your PC needs
+- **GPU acceleration**: NVIDIA, Intel and AMD graphics render clips; NVIDIA cards can run captions too
+- **Runs on any PC**: Light, Balanced or Power mode picked from your hardware
 
 ## System requirements
 
@@ -44,7 +47,7 @@ The installer includes everything: the engine and FFmpeg. No Python or other set
 | Storage | 3 GB free | 20 GB free (SSD) |
 | Graphics | Not needed | Not needed |
 
-The speech model (75 MB to 1.5 GB depending on your PC) downloads once on first use.
+On first launch the Setup screen downloads the speech model (145 MB to 1.5 GB depending on your PC) and, on NVIDIA graphics cards, an optional 560 MB speed pack.
 
 ## Installing
 
