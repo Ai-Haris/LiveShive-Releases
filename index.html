@@ -100,9 +100,23 @@
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF4D4D;
               box-shadow: 0 0 0 4px rgba(255,77,77,.16); animation: blink 2s infinite; }
   @keyframes blink { 50% { opacity: .35; } }
-  h1 { font-size: clamp(44px, 6.4vw, 84px); line-height: .98; letter-spacing: -0.045em;
-       font-weight: 700; margin: 0 0 26px; max-width: 12ch; }
+  h1 { font-size: clamp(40px, 4.6vw, 62px); line-height: 1.02; letter-spacing: -0.045em;
+       font-weight: 700; margin: 0 0 22px; }
+  h1 .line { display: block; white-space: nowrap; }
   h1 .soft { color: var(--text-3); }
+  @media (max-width: 560px) { h1 { font-size: 7.3vw; letter-spacing: -0.04em; } }
+
+  /* Third line under the headline: who makes it, linked to Instagram. */
+  .maker { display: inline-flex; align-items: center; gap: 12px; margin: 0 0 30px;
+           text-decoration: none; color: var(--text-2); font-size: 15px; }
+  .maker .ig { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+               background: var(--bg-3); border: 1px solid var(--line-2); color: var(--text);
+               transition: border-color .2s, color .2s, background .2s; }
+  .maker .ig svg { width: 18px; height: 18px; }
+  .maker b { color: var(--text); font-weight: 600; }
+  .maker .handle { font-family: var(--mono); font-size: 13px; color: var(--text-3); transition: color .2s; }
+  .maker:hover .ig { border-color: var(--lime); color: var(--lime); }
+  .maker:hover .handle { color: var(--lime); }
   .lead { font-size: 18px; color: var(--text-2); max-width: 52ch; margin: 0 0 36px; }
   .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
   .dl-meta { font-size: 12.5px; color: var(--text-3); margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
@@ -129,7 +143,7 @@
   .scr-ui { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
   .scr-caption { position: absolute; left: 6%; right: 6%; top: 49.2%; transform: translateY(-50%);
                  text-align: center; font-family: 'Montserrat', 'Arial Black', sans-serif; font-weight: 900;
-                 font-size: 7.4cqw; line-height: 1.1; color: #fff; letter-spacing: .005em;
+                 font-size: 6.8cqw; line-height: 1.1; color: #fff; letter-spacing: .005em;
                  -webkit-text-stroke: 1.6cqw #000; paint-order: stroke fill; white-space: nowrap; }
   .scr-caption .cw { display: inline-block; padding: .06em .16em; transition: background .12s; }
   .scr-caption .cw.on { background: var(--lime); color: #0A0A0A; -webkit-text-stroke: 0;
@@ -140,7 +154,6 @@
          box-shadow: 0 10px 30px rgba(0,0,0,.4); }
   .tag b { color: var(--text); font-weight: 600; }
   .tag.t1 { left: -26%; top: 22%; }
-  .tag.t2 { left: -34%; top: 47%; }
   .tag.t3 { left: -18%; bottom: 17%; }
   @media (max-width: 1100px) { .tag { display: none; } }
 
@@ -312,7 +325,13 @@
     <div class="wrap">
       <div class="reveal">
         <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span>For streamers and clippers</div>
-        <h1>Clips from your stream, <span class="soft">while you're still live.</span></h1>
+        <h1><span class="line">Clips from your stream,</span><span class="line soft">while you're still live.</span></h1>
+        <a class="maker" href="https://www.instagram.com/theharisai/" target="_blank" rel="noopener">
+          <span class="ig" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span>Built by <b>Haris AI</b> <span class="handle">@theharisai</span></span>
+        </a>
         <p class="lead">Paste a YouTube, Twitch or Kick link. LiveShive records the stream on your PC,
           listens for the moments worth posting, and saves them as captioned 9:16 videos ready for
           TikTok, Reels and Shorts.</p>
@@ -388,7 +407,6 @@
           </div>
         </div>
         <div class="tag t1 mono">screen <b>16:9</b></div>
-        <div class="tag t2 mono">captions <b>word by word</b></div>
         <div class="tag t3 mono">face <b>auto-zoomed</b></div>
       </div>
     </div>
@@ -645,7 +663,7 @@
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
   // Word-by-word caption in the phone: the lime box jumps to the spoken word.
-  const lines = [['WATCH', 'THIS', 'CLUTCH'], ['ONE', 'VERSUS', 'THREE'], ['LAST', 'ZONE', 'WIN']];
+  const lines = [['WATCH', 'THIS', 'CLUTCH'], ['ONE', 'VS', 'THREE'], ['LAST', 'ZONE', 'WIN']];
   const words = [...document.querySelectorAll('.scr-caption .cw')];
   let line = 0, word = 0;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -653,6 +671,14 @@
   function paint() {
     lines[line].forEach((w, i) => { words[i].textContent = w; });
     words.forEach((el, i) => el.classList.toggle('on', i === word));
+    // Never let a long line run off the phone screen.
+    const cap = words[0].parentElement;
+    cap.style.fontSize = '';
+    let size = parseFloat(getComputedStyle(cap).fontSize);
+    for (let i = 0; i < 8 && cap.scrollWidth > cap.clientWidth; i++) {
+      size *= 0.92;
+      cap.style.fontSize = size + 'px';
+    }
   }
   document.fonts.ready.then(() => {
     paint();
