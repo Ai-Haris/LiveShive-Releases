@@ -116,14 +116,31 @@
   .phone { position: relative; border-radius: 52px; padding: 11px;
            background: linear-gradient(145deg, #2B2B29, #121211 40%, #1C1C1A);
            box-shadow: 0 0 0 1px #3A3A36, 0 50px 100px -30px rgba(0,0,0,.8), 0 30px 60px -40px rgba(209,254,23,.18); }
-  .phone svg.screen { display: block; width: 100%; height: auto; border-radius: 42px; background: #000; }
-  .cap-word { transition: fill .15s; }
+  /* Screen layers use the 338 x 732 grid of the feed overlay, as percentages. */
+  .screen { position: relative; aspect-ratio: 338 / 732; border-radius: 42px; overflow: hidden;
+            background: #0B0D0C; container-type: inline-size; isolation: isolate; }
+  .screen video { position: absolute; display: block; object-fit: cover; background: #111; }
+  .scr-bg { position: absolute; inset: 0;
+            background: radial-gradient(120% 60% at 50% 45%, #26302B 0%, #121513 60%, #0A0B0A 100%); }
+  .scr-game { left: 0; width: 100%; top: 12.57%; height: 25.96%; }
+  .scr-cam { right: 2.4%; top: 29.2%; width: 23%; aspect-ratio: 4 / 3; border-radius: 3px;
+             box-shadow: 0 0 0 1px rgba(255,255,255,.75); }
+  .scr-face { left: 0; width: 100%; top: 57.92%; height: 35.8%; object-position: 50% 30%; }
+  .scr-ui { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .scr-caption { position: absolute; left: 6%; right: 6%; top: 49.2%; transform: translateY(-50%);
+                 text-align: center; font-family: 'Montserrat', 'Arial Black', sans-serif; font-weight: 900;
+                 font-size: 7.4cqw; line-height: 1.1; color: #fff; letter-spacing: .005em;
+                 -webkit-text-stroke: 1.6cqw #000; paint-order: stroke fill; white-space: nowrap; }
+  .scr-caption .cw { display: inline-block; padding: .06em .16em; transition: background .12s; }
+  .scr-caption .cw.on { background: var(--lime); color: #0A0A0A; -webkit-text-stroke: 0;
+                        animation: capPop .28s cubic-bezier(.2,.8,.2,1); }
+  @keyframes capPop { 0% { transform: scale(1.14); } 100% { transform: none; } }
   .tag { position: absolute; font-size: 11.5px; color: var(--text-2); background: var(--bg-2);
          border: 1px solid var(--line-2); padding: 5px 10px; border-radius: 8px; white-space: nowrap;
          box-shadow: 0 10px 30px rgba(0,0,0,.4); }
   .tag b { color: var(--text); font-weight: 600; }
   .tag.t1 { left: -26%; top: 22%; }
-  .tag.t2 { right: -34%; top: 56%; }
+  .tag.t2 { left: -34%; top: 47%; }
   .tag.t3 { left: -18%; bottom: 17%; }
   @media (max-width: 1100px) { .tag { display: none; } }
 
@@ -313,183 +330,62 @@
 
       <div class="stage reveal">
         <div class="phone">
-          <svg class="screen" viewBox="0 0 338 732" role="img"
+          <div class="screen" role="img"
                aria-label="Example clip on a phone: gameplay on top, the caption WATCH THIS CLUTCH in the middle, and the streamer's camera at the bottom">
-            <defs>
-              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#8FB7D6"/><stop offset=".62" stop-color="#E7D3B0"/><stop offset="1" stop-color="#E9C08E"/>
-              </linearGradient>
-              <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#8C8455"/><stop offset="1" stop-color="#5B5A36"/>
-              </linearGradient>
-              <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#9A8C73"/><stop offset="1" stop-color="#6F6553"/>
-              </linearGradient>
-              <linearGradient id="blurbg" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#2E3A37"/><stop offset=".5" stop-color="#1B1F1D"/><stop offset="1" stop-color="#101211"/>
-              </linearGradient>
-              <radialGradient id="room" cx=".3" cy=".25" r="1">
-                <stop offset="0" stop-color="#3B2C4A"/><stop offset=".55" stop-color="#1B1622"/><stop offset="1" stop-color="#0D0B10"/>
-              </radialGradient>
-              <linearGradient id="hoodie" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#2A2D33"/><stop offset="1" stop-color="#15171B"/>
-              </linearGradient>
-              <radialGradient id="skin" cx=".4" cy=".35" r=".8">
-                <stop offset="0" stop-color="#C98D67"/><stop offset="1" stop-color="#8E5A3D"/>
-              </radialGradient>
-              <linearGradient id="rim" x1="1" y1="0" x2="0" y2="0">
-                <stop offset="0" stop-color="#D1FE17" stop-opacity=".55"/><stop offset=".35" stop-color="#D1FE17" stop-opacity="0"/>
-              </linearGradient>
-              <linearGradient id="fadeTop" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
-              </linearGradient>
-              <linearGradient id="fadeBottom" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".7"/>
-              </linearGradient>
-              <clipPath id="gameClip"><rect x="0" y="92" width="338" height="190"/></clipPath>
-              <clipPath id="faceClip"><rect x="0" y="424" width="338" height="262"/></clipPath>
-              <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
-            </defs>
+            <div class="scr-bg"></div>
+            <video class="scr-game" src="media/gameplay.mp4" poster="media/gameplay.jpg"
+                   muted loop autoplay playsinline preload="auto" aria-hidden="true"></video>
+            <video class="scr-cam" src="media/streamer-small.mp4" poster="media/streamer.jpg"
+                   muted loop autoplay playsinline preload="auto" aria-hidden="true"></video>
+            <div class="scr-caption" aria-hidden="true">
+              <span class="cw">WATCH</span> <span class="cw">THIS</span> <span class="cw">CLUTCH</span>
+            </div>
+            <video class="scr-face" src="media/streamer.mp4" poster="media/streamer.jpg"
+                   muted loop autoplay playsinline preload="auto" aria-hidden="true"></video>
 
-            <!-- blurred backdrop -->
-            <rect width="338" height="732" fill="url(#blurbg)"/>
-
-            <!-- gameplay panel -->
-            <g clip-path="url(#gameClip)">
-              <rect x="0" y="92" width="338" height="190" fill="url(#sky)"/>
-              <path d="M0 200 L40 176 L78 190 L122 160 L168 186 L214 158 L262 182 L300 166 L338 180 L338 230 L0 230Z" fill="#9AA5A2" opacity=".75"/>
-              <path d="M0 214 L52 196 L96 208 L150 188 L206 206 L258 192 L338 204 L338 240 L0 240Z" fill="#7F8A7B"/>
-              <rect x="0" y="222" width="338" height="60" fill="url(#ground)"/>
-              <path d="M150 222 L188 222 L260 282 L96 282Z" fill="url(#road)"/>
-              <path d="M167 232 L171 232 L175 250 L165 250Z" fill="#D8CDB0" opacity=".7"/>
-              <!-- trees -->
-              <g fill="#3F5236">
-                <ellipse cx="46" cy="214" rx="14" ry="18"/><rect x="44" y="226" width="4" height="10" fill="#4A3B2A"/>
-                <ellipse cx="292" cy="210" rx="16" ry="20"/><rect x="290" y="224" width="4" height="12" fill="#4A3B2A"/>
-                <ellipse cx="248" cy="220" rx="9" ry="12" fill="#4B6040"/>
+            <!-- Feed interface drawn on top of the clip. -->
+            <svg class="scr-ui" viewBox="0 0 338 732" aria-hidden="true">
+              <defs>
+                <linearGradient id="uiTop" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="uiBottom" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".75"/>
+                </linearGradient>
+              </defs>
+              <rect x="0" y="0" width="338" height="110" fill="url(#uiTop)"/>
+              <rect x="0" y="600" width="338" height="132" fill="url(#uiBottom)"/>
+              <g font-family="Geist, sans-serif" fill="#fff">
+                <text x="34" y="36" font-size="13" font-weight="600">9:41</text>
+                <rect x="128" y="18" width="82" height="24" rx="12" fill="#000"/>
+                <g transform="translate(270 26)" opacity=".95">
+                  <rect x="0" y="4" width="3" height="6" rx="1"/><rect x="5" y="2" width="3" height="8" rx="1"/>
+                  <rect x="10" y="0" width="3" height="10" rx="1"/>
+                  <rect x="20" y="1" width="20" height="9" rx="2.5" fill="none" stroke="#fff" stroke-opacity=".7"/>
+                  <rect x="22" y="3" width="14" height="5" rx="1"/>
+                </g>
+                <text x="118" y="74" font-size="13" opacity=".6">Following</text>
+                <text x="190" y="74" font-size="13" font-weight="600">For You</text>
+                <rect x="203" y="80" width="22" height="2" rx="1"/>
               </g>
-              <!-- car -->
-              <g transform="translate(118 238)">
-                <path d="M4 22 Q6 10 22 8 L34 0 Q50 -2 66 2 L80 10 Q96 12 98 22 L98 30 L4 30Z" fill="#2F4B63"/>
-                <path d="M36 3 L64 5 L74 11 L30 11Z" fill="#9FC0D6" opacity=".85"/>
-                <circle cx="24" cy="31" r="7" fill="#161616"/><circle cx="78" cy="31" r="7" fill="#161616"/>
-                <circle cx="24" cy="31" r="3" fill="#7A7A7A"/><circle cx="78" cy="31" r="3" fill="#7A7A7A"/>
+              <g font-family="Geist, sans-serif" fill="#fff" font-size="10" text-anchor="middle">
+                <circle cx="310" cy="470" r="17" fill="#111" stroke="#fff" stroke-width="1.5"/>
+                <image href="icon.png" x="298" y="458" width="24" height="24"/>
+                <path d="M310 506 C300 498 296 492 300 487 C303 483 308 484 310 488 C312 484 317 483 320 487 C324 492 320 498 310 506Z"/>
+                <text x="310" y="520">48.2K</text>
+                <path d="M300 540 h20 a4 4 0 0 1 4 4 v11 a4 4 0 0 1 -4 4 h-12 l-6 5 v-5 h-2 a4 4 0 0 1 -4 -4 v-11 a4 4 0 0 1 4 -4z"/>
+                <text x="310" y="578">1,093</text>
+                <path d="M312 594 l10 9 -10 9 v-5 q-10 0 -16 7 q2 -13 16 -15z"/>
+                <text x="310" y="628">3,417</text>
               </g>
-              <!-- HUD -->
-              <rect x="0" y="92" width="338" height="30" fill="url(#fadeTop)"/>
-              <g font-family="Geist, sans-serif" font-size="8" fill="#fff">
-                <rect x="8" y="99" width="46" height="13" rx="2" fill="#000" opacity=".45"/>
-                <text x="13" y="108.5">ALIVE 23</text>
-                <rect x="58" y="99" width="40" height="13" rx="2" fill="#000" opacity=".45"/>
-                <text x="63" y="108.5">KILLS 7</text>
-                <text x="210" y="119" font-size="7" opacity=".9">haris ⌖ blaze_77</text>
+              <g font-family="Geist, sans-serif" fill="#fff">
+                <text x="18" y="662" font-size="13" font-weight="600">@harisplays</text>
+                <text x="18" y="680" font-size="11.5" opacity=".9">last zone 1v3, never giving up</text>
+                <text x="18" y="697" font-size="11" opacity=".7">♫ original sound · harisplays</text>
               </g>
-              <circle cx="310" cy="118" r="20" fill="#2B3B2E" stroke="#fff" stroke-opacity=".6"/>
-              <path d="M300 112 L318 108 L322 124 L304 128Z" fill="#6E7F5E"/>
-              <circle cx="310" cy="118" r="2.5" fill="#D1FE17"/>
-              <g stroke="#fff" stroke-width="1.2" opacity=".8">
-                <path d="M169 176 v6 M169 190 v6 M160 186 h6 M172 186 h6"/>
-              </g>
-              <rect x="112" y="266" width="114" height="5" rx="2.5" fill="#000" opacity=".5"/>
-              <rect x="112" y="266" width="78" height="5" rx="2.5" fill="#F2F2EC"/>
-              <!-- facecam inside the stream -->
-              <g transform="translate(252 222)">
-                <rect width="78" height="52" rx="3" fill="#1C1824" stroke="#fff" stroke-opacity=".7"/>
-                <ellipse cx="39" cy="24" rx="9" ry="11" fill="url(#skin)"/>
-              <circle cx="35.5" cy="23" r="1" fill="#1A120E"/><circle cx="42.5" cy="23" r="1" fill="#1A120E"/>
-              <path d="M36 29 Q39 31 42 29" stroke="#35170F" stroke-width="1.2" fill="none"/>
-                <path d="M26 52 Q28 36 39 35 Q50 36 52 52Z" fill="#2A2D33"/>
-                <path d="M28 22 Q28 9 39 9 Q50 9 50 22" fill="none" stroke="#111" stroke-width="3"/>
-              </g>
-            </g>
-
-            <!-- caption band -->
-            <g font-family="Montserrat, 'Arial Black', sans-serif" font-weight="900" font-size="25" text-anchor="middle">
-              <g id="capLine" transform="translate(169 360)">
-                <rect id="capBox" x="-22" y="-22" width="44" height="30" fill="#D1FE17"/>
-                <text x="0" y="0" stroke="#000" stroke-width="6" stroke-linejoin="round" paint-order="stroke" fill="#fff">
-                  <tspan class="cap-word" data-i="0">WATCH</tspan> <tspan class="cap-word" data-i="1">THIS</tspan> <tspan class="cap-word" data-i="2">CLUTCH</tspan>
-                </text>
-              </g>
-            </g>
-
-            <!-- streamer camera panel -->
-            <g clip-path="url(#faceClip)">
-              <rect x="0" y="424" width="338" height="262" fill="url(#room)"/>
-              <!-- LED strip and shelves -->
-              <rect x="0" y="446" width="338" height="3" fill="#D1FE17" opacity=".55" filter="url(#soft)"/>
-              <rect x="0" y="449" width="338" height="40" fill="#D1FE17" opacity=".05"/>
-              <rect x="22" y="512" width="68" height="3" fill="#2A2330"/>
-              <rect x="30" y="494" width="10" height="18" fill="#3A3150"/><rect x="44" y="498" width="8" height="14" fill="#4C3A2A"/>
-              <rect x="56" y="490" width="12" height="22" fill="#23303A"/>
-              <rect x="262" y="480" width="54" height="36" rx="3" fill="#15121A" stroke="#2F2838"/>
-              <circle cx="289" cy="498" r="6" fill="#D1FE17" opacity=".35"/>
-              <!-- chair -->
-              <path d="M96 686 L100 548 Q104 520 169 518 Q234 520 238 548 L242 686Z" fill="#1A1A1E"/>
-              <path d="M112 686 L114 560 Q118 538 169 536 Q220 538 224 560 L226 686Z" fill="#26262B"/>
-              <!-- person -->
-              <path d="M84 686 Q88 614 132 598 Q150 592 169 592 Q188 592 206 598 Q250 614 254 686Z" fill="url(#hoodie)"/>
-              <path d="M150 596 Q169 616 188 596" fill="none" stroke="#0E0F12" stroke-width="3"/>
-              <rect x="158" y="570" width="22" height="30" rx="8" fill="#8A5639"/>
-              <ellipse cx="169" cy="540" rx="31" ry="38" fill="url(#skin)"/>
-              <path d="M137 532 Q134 494 169 492 Q206 494 202 530 Q196 510 170 508 Q146 508 137 532Z" fill="#17120F"/>
-              <path d="M140 556 Q150 586 169 588 Q188 586 198 556 Q190 576 169 578 Q148 576 140 556Z" fill="#241A14" opacity=".85"/>
-              <!-- face: brows, eyes looking at the screen, nose, mid-shout mouth -->
-              <path d="M148 527 Q156 521 164 525" stroke="#1B120D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-              <path d="M174 525 Q182 521 190 527" stroke="#1B120D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-              <ellipse cx="157" cy="536" rx="4.2" ry="2.8" fill="#F1E6DC"/>
-              <ellipse cx="181" cy="536" rx="4.2" ry="2.8" fill="#F1E6DC"/>
-              <circle cx="158.5" cy="536" r="2" fill="#1A120E"/>
-              <circle cx="182.5" cy="536" r="2" fill="#1A120E"/>
-              <path d="M170 539 Q166 551 167 553 Q170 555 174 553" stroke="#6E4330" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-              <path d="M158 562 Q169 559 180 562 Q178 574 169 575 Q160 574 158 562Z" fill="#35170F"/>
-              <path d="M161 563 Q169 561 177 563 L176 565 Q169 564 162 565Z" fill="#EDE3D6"/>
-              <!-- headset -->
-              <path d="M130 540 Q128 486 169 484 Q210 486 208 540" fill="none" stroke="#0B0B0D" stroke-width="7" stroke-linecap="round"/>
-              <rect x="120" y="522" width="17" height="34" rx="8" fill="#101013"/>
-              <rect x="201" y="522" width="17" height="34" rx="8" fill="#101013"/>
-              <rect x="203" y="530" width="3" height="18" rx="1.5" fill="#D1FE17" opacity=".8"/>
-              <path d="M130 552 Q134 578 154 580" fill="none" stroke="#101013" stroke-width="3" stroke-linecap="round"/>
-              <circle cx="156" cy="580" r="4" fill="#101013"/>
-              <!-- rim light -->
-              <path d="M84 686 Q88 614 132 598 Q150 592 169 592 Q188 592 206 598 Q250 614 254 686Z" fill="url(#rim)"/>
-              <ellipse cx="169" cy="540" rx="31" ry="38" fill="url(#rim)" opacity=".7"/>
-              <rect x="0" y="600" width="338" height="86" fill="url(#fadeBottom)"/>
-            </g>
-
-            <!-- app chrome: status bar and feed UI -->
-            <g font-family="Geist, sans-serif" fill="#fff">
-              <text x="34" y="36" font-size="13" font-weight="600">9:41</text>
-              <rect x="128" y="18" width="82" height="24" rx="12" fill="#000"/>
-              <g transform="translate(270 26)" opacity=".95">
-                <rect x="0" y="4" width="3" height="6" rx="1"/><rect x="5" y="2" width="3" height="8" rx="1"/>
-                <rect x="10" y="0" width="3" height="10" rx="1"/>
-                <rect x="20" y="1" width="20" height="9" rx="2.5" fill="none" stroke="#fff" stroke-opacity=".7"/>
-                <rect x="22" y="3" width="14" height="5" rx="1"/>
-              </g>
-              <text x="118" y="74" font-size="13" opacity=".6">Following</text>
-              <text x="190" y="74" font-size="13" font-weight="600">For You</text>
-              <rect x="203" y="80" width="22" height="2" rx="1"/>
-            </g>
-            <!-- right rail -->
-            <g font-family="Geist, sans-serif" fill="#fff" font-size="10" text-anchor="middle">
-              <circle cx="310" cy="470" r="17" fill="#222" stroke="#fff" stroke-width="1.5"/>
-              <image href="icon.png" x="298" y="458" width="24" height="24"/>
-              <path d="M310 506 C300 498 296 492 300 487 C303 483 308 484 310 488 C312 484 317 483 320 487 C324 492 320 498 310 506Z"/>
-              <text x="310" y="520">48.2K</text>
-              <path d="M300 540 h20 a4 4 0 0 1 4 4 v11 a4 4 0 0 1 -4 4 h-12 l-6 5 v-5 h-2 a4 4 0 0 1 -4 -4 v-11 a4 4 0 0 1 4 -4z"/>
-              <text x="310" y="578">1,093</text>
-              <path d="M312 594 l10 9 -10 9 v-5 q-10 0 -16 7 q2 -13 16 -15z"/>
-              <text x="310" y="628">3,417</text>
-            </g>
-            <!-- caption text at the bottom -->
-            <g font-family="Geist, sans-serif" fill="#fff">
-              <text x="18" y="662" font-size="13" font-weight="600">@harisplays</text>
-              <text x="18" y="680" font-size="11.5" opacity=".9">last zone 1v3, never giving up</text>
-              <text x="18" y="697" font-size="11" opacity=".7">♫ original sound · harisplays</text>
-            </g>
-            <rect x="119" y="716" width="100" height="4" rx="2" fill="#fff" opacity=".8"/>
-          </svg>
+              <rect x="119" y="716" width="100" height="4" rx="2" fill="#fff" opacity=".8"/>
+            </svg>
+          </div>
         </div>
         <div class="tag t1 mono">screen <b>16:9</b></div>
         <div class="tag t2 mono">captions <b>word by word</b></div>
@@ -748,34 +644,37 @@
   }, { rootMargin: '0px 0px -8% 0px' });
   document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
 
-  // Word-by-word caption in the phone: the lime box follows the spoken word.
+  // Word-by-word caption in the phone: the lime box jumps to the spoken word.
   const lines = [['WATCH', 'THIS', 'CLUTCH'], ['ONE', 'VERSUS', 'THREE'], ['LAST', 'ZONE', 'WIN']];
-  const words = [...document.querySelectorAll('.cap-word')];
-  const box = document.getElementById('capBox');
+  const words = [...document.querySelectorAll('.scr-caption .cw')];
   let line = 0, word = 0;
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function paint() {
     lines[line].forEach((w, i) => { words[i].textContent = w; });
-    words.forEach((el, i) => el.setAttribute('fill', i === word ? '#0A0A0A' : '#fff'));
-    words.forEach((el, i) => el.setAttribute('stroke-width', i === word ? '0' : '6'));
-    requestAnimationFrame(() => {
-      const b = words[word].getBBox();
-      box.setAttribute('x', (b.x - 6).toFixed(1));
-      box.setAttribute('y', (b.y - 1).toFixed(1));
-      box.setAttribute('width', (b.width + 12).toFixed(1));
-      box.setAttribute('height', (b.height + 2).toFixed(1));
-    });
-  }
-  function step() {
-    word += 1;
-    if (word >= 3) { word = 0; line = (line + 1) % lines.length; }
-    paint();
+    words.forEach((el, i) => el.classList.toggle('on', i === word));
   }
   document.fonts.ready.then(() => {
     paint();
-    if (!reduce) setInterval(step, 520);
+    if (reduce) return;
+    setInterval(() => {
+      word += 1;
+      if (word >= 3) { word = 0; line = (line + 1) % lines.length; }
+      paint();
+    }, 520);
   });
+
+  // Keep the three clips in step and pause them when the phone is off screen.
+  const clips = [...document.querySelectorAll('.screen video')];
+  if (reduce) clips.forEach((v) => { v.removeAttribute('autoplay'); v.pause(); });
+  const phoneIo = new IntersectionObserver(([entry]) => {
+    clips.forEach((v) => {
+      if (entry.isIntersecting && !reduce) v.play().catch(() => {});
+      else v.pause();
+    });
+  });
+  const screenEl = document.querySelector('.screen');
+  if (screenEl) phoneIo.observe(screenEl);
 </script>
 </body>
 </html>
