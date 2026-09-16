@@ -3,393 +3,779 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>LiveShive — Live stream to viral clips | by Haris AI</title>
-<meta name="description" content="LiveShive turns any live stream into captioned vertical clips automatically. Screen + face layout, Hinglish captions, runs on any Windows PC. By Haris AI." />
+<title>LiveShive — clips from your live stream, while you're still live</title>
+<meta name="description" content="LiveShive records your live stream, finds the moments worth posting and exports captioned 9:16 clips on your own PC. Free for Windows. By Haris AI." />
 <meta property="og:title" content="LiveShive by Haris AI" />
-<meta property="og:description" content="Paste a live stream link. Get captioned 9:16 clips while you stream." />
-<meta name="theme-color" content="#050505" />
+<meta property="og:description" content="Clips from your live stream, while you're still live. Free for Windows." />
+<meta name="theme-color" content="#0C0C0B" />
 <link rel="icon" href="icon.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500&family=Montserrat:wght@900&family=Anton&family=Luckiest+Guy&family=DM+Serif+Display&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #050505; --bg-2: #0B0B0B; --card: #111111; --card-2: #171717;
-    --line: #1F1F1F; --line-2: #2C2C2C;
-    --text: #F4F4EF; --text-2: #ABABA4; --text-3: #75756F;
-    --lime: #D1FE17; --lime-soft: rgba(209,254,23,.10); --lime-line: rgba(209,254,23,.35);
-    --on-lime: #0A0A0A;
-    --display: 'Poppins', 'Segoe UI', system-ui, sans-serif;
-    --body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --bg: #0C0C0B;
+    --bg-2: #121211;
+    --bg-3: #181817;
+    --line: #242422;
+    --line-2: #33332F;
+    --text: #EDEDE8;
+    --text-2: #A3A39B;
+    --text-3: #6E6E67;
+    --lime: #D1FE17;
+    --lime-ink: #10120A;
+    --sans: 'Geist', 'Segoe UI', system-ui, sans-serif;
+    --mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    --z-nav: 20;
+    --z-grain: 50;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
-    margin: 0; background: var(--bg); color: var(--text); font-family: var(--body);
-    font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased;
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--sans); font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
-  a { color: inherit; text-decoration: none; }
-  img { max-width: 100%; display: block; }
-  .wrap { width: min(1160px, 100%); margin: 0 auto; padding-inline: 24px; }
-  ::selection { background: var(--lime); color: var(--on-lime); }
+  /* Film grain so the dark surfaces don't look flat. */
+  body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: var(--z-grain);
+    opacity: .06; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  a { color: inherit; }
+  ::selection { background: var(--lime); color: var(--lime-ink); }
+  :focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 6px; }
+  .skip { position: absolute; left: -999px; top: 8px; background: var(--lime); color: var(--lime-ink);
+          padding: 8px 14px; border-radius: 8px; z-index: 100; }
+  .skip:focus { left: 16px; }
 
-  /* nav */
-  .nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px);
-         background: rgba(5,5,5,.78); border-bottom: 1px solid var(--line); }
-  .nav .wrap { display: flex; align-items: center; gap: 20px; height: 68px; }
-  .logo { display: flex; align-items: center; gap: 11px; font-family: var(--display);
-          font-weight: 800; font-size: 19px; }
-  .logo svg { width: 34px; height: 34px; }
-  .logo small { display: block; font-family: var(--body); font-size: 10px; font-weight: 600;
-                letter-spacing: .2em; color: var(--lime); text-transform: uppercase; line-height: 1; }
-  .nav-links { margin-left: auto; display: flex; gap: 26px; font-size: 14px; color: var(--text-2); }
+  .wrap { width: min(1200px, 100%); margin: 0 auto; padding-inline: 24px; }
+  .mono { font-family: var(--mono); font-feature-settings: "tnum"; }
+  h1, h2, h3 { text-wrap: balance; }
+  p { text-wrap: pretty; }
+
+  /* ---------- nav ---------- */
+  .nav { position: sticky; top: 0; z-index: var(--z-nav);
+         background: color-mix(in srgb, var(--bg) 82%, transparent);
+         backdrop-filter: blur(12px); border-bottom: 1px solid transparent;
+         transition: border-color .3s; }
+  .nav.scrolled { border-bottom-color: var(--line); }
+  .nav .wrap { display: flex; align-items: center; gap: 28px; height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none;
+           font-weight: 700; letter-spacing: -0.02em; font-size: 17px; }
+  .brand img { width: 26px; height: 26px; border-radius: 7px; }
+  .brand .by { font-weight: 400; color: var(--text-3); }
+  .nav-links { display: flex; gap: 24px; margin-left: auto; font-size: 14px; }
+  .nav-links a { text-decoration: none; color: var(--text-2); transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-         height: 48px; padding: 0 26px; border-radius: 999px; font-weight: 700; font-size: 15px;
-         transition: transform .15s, box-shadow .2s, background .2s; white-space: nowrap; }
-  .btn svg { width: 18px; height: 18px; }
-  .btn-lime { background: var(--lime); color: var(--on-lime);
-              box-shadow: 0 0 0 1px rgba(209,254,23,.4), 0 10px 40px rgba(209,254,23,.2); }
-  .btn-lime:hover { transform: translateY(-2px); background: #E2FF5C;
-                    box-shadow: 0 0 0 1px rgba(209,254,23,.6), 0 14px 50px rgba(209,254,23,.3); }
-  .btn-ghost { border: 1px solid var(--line-2); color: var(--text); background: var(--card); }
-  .btn-ghost:hover { border-color: var(--text-3); }
-  .btn-sm { height: 40px; padding: 0 18px; font-size: 14px; }
-  @media (max-width: 760px) { .nav-links { display: none; } .nav .btn { margin-left: auto; } }
+  .ver { font-size: 12px; color: var(--text-3); padding: 3px 8px; border: 1px solid var(--line-2);
+         border-radius: 6px; }
+  @media (max-width: 720px) {
+    .nav-links a:not(.keep) { display: none; }
+    .brand .by, .ver { display: none; }
+    .dl-main, .dl-side { padding: 28px 24px; }
+    section { padding: 80px 0 88px; }
+  }
 
-  /* hero */
-  .hero { position: relative; overflow: hidden; padding: 90px 0 70px; }
-  .hero::before { content: ""; position: absolute; inset: -30% -10% auto; height: 700px;
-                  background: radial-gradient(closest-side, rgba(209,254,23,.13), transparent 70%);
-                  pointer-events: none; }
-  .hero .wrap { position: relative; display: grid; grid-template-columns: 1.1fr .9fr;
-                gap: 60px; align-items: center; }
-  @media (max-width: 960px) { .hero .wrap { grid-template-columns: 1fr; } .hero { padding-top: 56px; } }
-  .pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px;
-          border-radius: 999px; border: 1px solid var(--line-2); background: var(--card);
-          font-size: 13px; color: var(--text-2); }
-  .pill b { background: var(--lime); color: var(--on-lime); border-radius: 999px;
-            padding: 2px 9px; font-size: 11px; letter-spacing: .04em; }
-  h1 { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 6vw, 72px);
-       line-height: 1.02; letter-spacing: -0.03em; margin: 22px 0 20px; }
-  h1 em { font-style: normal; color: var(--lime); }
-  .lead { font-size: 19px; color: var(--text-2); max-width: 560px; margin: 0 0 32px; }
-  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  .cta-note { width: 100%; font-size: 13px; color: var(--text-3); margin-top: 6px; }
+  /* ---------- buttons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 10px; height: 50px; padding: 0 22px 0 18px;
+         border-radius: 12px; background: var(--lime); color: var(--lime-ink); font-weight: 600;
+         font-size: 15px; text-decoration: none; letter-spacing: -0.01em;
+         box-shadow: inset 0 -2px 0 rgba(0,0,0,.18), 0 1px 0 rgba(255,255,255,.35) inset;
+         transition: transform .2s cubic-bezier(.2,.8,.2,1), background .2s; }
+  .btn:hover { background: #DCFF4E; transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .link { color: var(--text-2); text-decoration: underline; text-decoration-color: var(--line-2);
+          text-underline-offset: 4px; transition: color .2s, text-decoration-color .2s; }
+  .link:hover { color: var(--text); text-decoration-color: var(--text-3); }
 
-  /* phone mock */
-  .phone { justify-self: center; width: min(320px, 100%); aspect-ratio: 9/16; border-radius: 34px;
-           background: #000; position: relative; overflow: hidden;
-           box-shadow: 0 0 0 9px #151515, 0 0 0 10px #2a2a2a, 0 40px 120px rgba(209,254,23,.12); }
-  .ph-screen { position: absolute; left: 0; right: 0; top: 7.5%; height: 31.7%; overflow: hidden;
-               background: linear-gradient(180deg, #5BA8F5 0%, #9FD4F7 52%, #3F8F46 53%, #2E6B34 100%); }
-  .ph-screen i { position: absolute; display: block; }
-  .ph-sun { right: 16%; top: 14%; width: 11%; aspect-ratio: 1; border-radius: 50%; background: #FFE58A; }
-  .ph-hill { left: -10%; right: 30%; bottom: 20%; height: 40%; border-radius: 50% 50% 0 0; background: #4E9E53; }
-  .ph-hud { left: 4%; top: 8%; width: 28%; height: 9%; border-radius: 3px;
-            background: linear-gradient(90deg, #EF4444 0 70%, rgba(0,0,0,.4) 70%); }
-  .ph-cam { right: 3%; bottom: 6%; width: 24%; aspect-ratio: 4/3; border-radius: 4px;
-            background: radial-gradient(circle at 50% 45%, #E9B38F 0 18%, transparent 19%),
-                        radial-gradient(ellipse at 50% 110%, #6D5BD8 0 45%, transparent 46%), #2A2233;
-            box-shadow: 0 0 0 1.5px rgba(255,255,255,.6); }
-  .ph-bg { position: absolute; inset: 0; background: linear-gradient(180deg, #1D3A6B, #24414F 45%, #1A2333);
-           filter: blur(12px) brightness(.5); transform: scale(1.1); }
-  .ph-face { position: absolute; left: 0; right: 0; top: 60.4%; height: 36%; overflow: hidden;
-             background: linear-gradient(180deg, #2E2640, #1D1A2A); }
-  .ph-face::before { content: ""; position: absolute; left: 50%; top: 16%; width: 30%; aspect-ratio: 1;
-                     transform: translateX(-50%); border-radius: 50%; background: #E9B38F; }
-  .ph-face::after { content: ""; position: absolute; left: 50%; bottom: -12%; width: 70%; height: 46%;
-                    transform: translateX(-50%); border-radius: 50% 50% 0 0; background: #6D5BD8; }
-  .ph-cap { position: absolute; left: 0; right: 0; top: 49.8%; transform: translateY(-50%);
-            text-align: center; font-family: var(--display); font-weight: 800; font-size: 21px;
-            letter-spacing: .01em; color: #fff; text-shadow: 0 2px 0 #000, 0 0 3px #000; }
-  .ph-cap span { background: var(--lime); color: var(--on-lime); padding: 2px 8px; margin: 0 4px;
-                 text-shadow: none; display: inline-block; animation: pop 1.2s infinite; }
-  @keyframes pop { 0%, 20% { transform: scale(1.12); } 45%, 100% { transform: scale(1); } }
-  .ph-brand { position: absolute; right: 12px; bottom: 10px; font-size: 10px; color: rgba(255,255,255,.75); }
+  /* ---------- hero ---------- */
+  .hero { padding: 72px 0 96px; }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+                gap: 48px; align-items: center; }
+  @media (max-width: 940px) { .hero .wrap { grid-template-columns: 1fr; } .hero { padding-top: 40px; } }
+  .eyebrow { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-2);
+             margin-bottom: 26px; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #FF4D4D;
+              box-shadow: 0 0 0 4px rgba(255,77,77,.16); animation: blink 2s infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  h1 { font-size: clamp(44px, 6.4vw, 84px); line-height: .98; letter-spacing: -0.045em;
+       font-weight: 700; margin: 0 0 26px; max-width: 12ch; }
+  h1 .soft { color: var(--text-3); }
+  .lead { font-size: 18px; color: var(--text-2); max-width: 52ch; margin: 0 0 36px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; }
+  .dl-meta { font-size: 12.5px; color: var(--text-3); margin-top: 18px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+  .dl-meta span { white-space: nowrap; }
 
-  /* sections */
-  section { padding: 90px 0; }
-  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
-            color: var(--lime); margin-bottom: 12px; }
-  h2 { font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4vw, 46px);
-       line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 16px; }
-  .sub { color: var(--text-2); max-width: 640px; margin: 0 0 44px; font-size: 17px; }
-  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; }
-  .card h3 { font-family: var(--display); font-size: 19px; font-weight: 700; margin: 16px 0 8px; }
-  .card p { margin: 0; color: var(--text-2); font-size: 15px; }
-  .ico { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center;
-         background: var(--lime-soft); color: var(--lime); border: 1px solid var(--lime-line); }
-  .ico svg { width: 22px; height: 22px; }
+  /* ---------- phone ---------- */
+  .stage { position: relative; justify-self: center; width: min(360px, 100%); }
+  .stage::before { content: ""; position: absolute; inset: 12% -18% 4%; border-radius: 50%;
+                   background: radial-gradient(closest-side, rgba(209,254,23,.10), transparent);
+                   filter: blur(10px); }
+  .phone { position: relative; border-radius: 52px; padding: 11px;
+           background: linear-gradient(145deg, #2B2B29, #121211 40%, #1C1C1A);
+           box-shadow: 0 0 0 1px #3A3A36, 0 50px 100px -30px rgba(0,0,0,.8), 0 30px 60px -40px rgba(209,254,23,.18); }
+  .phone svg.screen { display: block; width: 100%; height: auto; border-radius: 42px; background: #000; }
+  .cap-word { transition: fill .15s; }
+  .tag { position: absolute; font-size: 11.5px; color: var(--text-2); background: var(--bg-2);
+         border: 1px solid var(--line-2); padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+         box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+  .tag b { color: var(--text); font-weight: 600; }
+  .tag.t1 { left: -26%; top: 22%; }
+  .tag.t2 { right: -34%; top: 56%; }
+  .tag.t3 { left: -18%; bottom: 17%; }
+  @media (max-width: 1100px) { .tag { display: none; } }
 
-  /* steps */
-  .steps { counter-reset: s; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-  .step { counter-increment: s; position: relative; padding: 28px 24px 24px; border-radius: 22px;
-          background: var(--bg-2); border: 1px solid var(--line); }
-  .step::before { content: counter(s); display: grid; place-items: center; width: 34px; height: 34px;
-                  border-radius: 50%; background: var(--lime); color: var(--on-lime);
-                  font-family: var(--display); font-weight: 800; margin-bottom: 14px; }
-  .step h3 { font-family: var(--display); margin: 0 0 6px; font-size: 18px; }
-  .step p { margin: 0; color: var(--text-2); font-size: 15px; }
+  /* ---------- sections ---------- */
+  section { padding: 110px 0 120px; border-top: 1px solid var(--line); }
+  .sec-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 48px;
+              align-items: end; margin-bottom: 64px; }
+  @media (max-width: 860px) { .sec-head { grid-template-columns: 1fr; } }
+  .label { font-family: var(--mono); font-size: 12.5px; color: var(--text-3); margin-bottom: 18px; }
+  .label::before { content: "— "; color: var(--lime); }
+  h2 { font-size: clamp(32px, 4.2vw, 52px); line-height: 1.02; letter-spacing: -0.035em;
+       font-weight: 700; margin: 0; }
+  .sec-head p { color: var(--text-2); margin: 0; max-width: 50ch; font-size: 17px; }
 
-  /* download */
-  .download { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-  .dl { position: relative; border-radius: 26px; padding: 34px; border: 1px solid var(--line);
-        background: var(--card); overflow: hidden; }
-  .dl.win { border-color: var(--lime-line);
-            background: radial-gradient(120% 90% at 100% 0%, rgba(209,254,23,.12), transparent 60%), var(--card); }
-  .dl .os { display: flex; align-items: center; gap: 12px; font-family: var(--display);
-            font-weight: 800; font-size: 26px; margin-bottom: 6px; }
-  .dl .os svg { width: 30px; height: 30px; }
-  .dl p { color: var(--text-2); margin: 0 0 24px; }
-  .dl ul { margin: 0 0 26px; padding: 0; list-style: none; display: grid; gap: 8px;
-           font-size: 14px; color: var(--text-2); }
-  .dl li { display: flex; gap: 10px; }
-  .dl li::before { content: ""; flex: none; width: 18px; height: 18px; margin-top: 2px; border-radius: 50%;
-                   background: var(--lime-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.4l2.6 2.6L12 5.6' stroke='%23D1FE17' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
-  .soon { position: absolute; top: 24px; right: 24px; padding: 5px 12px; border-radius: 999px;
-          font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-          background: var(--card-2); border: 1px solid var(--line-2); color: var(--text-2); }
-  .dl.mac { opacity: .9; }
-  .btn[aria-disabled="true"] { pointer-events: none; opacity: .55; }
-  .meta { margin-top: 14px; font-size: 13px; color: var(--text-3); }
-  .meta a { color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; }
+  /* timeline */
+  .timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); position: relative; }
+  .timeline::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 1px;
+                      background: linear-gradient(90deg, var(--line-2), var(--line-2) 70%, transparent); }
+  .tick { position: relative; padding-right: 28px; }
+  .tick::before { content: ""; display: block; width: 15px; height: 15px; border-radius: 50%;
+                  background: var(--bg); border: 1px solid var(--line-2); margin-bottom: 26px; }
+  .tick:last-child::before { background: var(--lime); border-color: var(--lime); }
+  .tick .t { font-family: var(--mono); font-size: 13px; color: var(--text-3); margin-bottom: 8px; }
+  .tick h3 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 8px; font-weight: 600; }
+  .tick p { margin: 0; color: var(--text-2); font-size: 15px; }
+  @media (max-width: 860px) {
+    .timeline { grid-template-columns: 1fr; gap: 34px; padding-left: 34px; }
+    .timeline::before { left: 7px; right: auto; top: 0; bottom: 0; width: 1px; height: auto;
+                        background: var(--line-2); }
+    .tick::before { position: absolute; left: -34px; top: 2px; margin: 0; }
+  }
+
+  /* feature rows */
+  .row { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 56px;
+         align-items: center; padding: 56px 0; }
+  .row + .row { border-top: 1px dashed var(--line); }
+  .row.flip .copy { order: 2; }
+  @media (max-width: 900px) { .row, .row.flip { grid-template-columns: 1fr; gap: 32px; }
+                              .row.flip .copy { order: 0; } }
+  .copy h3 { font-size: 30px; line-height: 1.1; letter-spacing: -0.03em; margin: 0 0 14px; font-weight: 700; }
+  .copy p { color: var(--text-2); margin: 0 0 18px; max-width: 46ch; }
+  .copy ul { margin: 0; padding: 0; list-style: none; color: var(--text-2); font-size: 15px; }
+  .copy li { padding: 9px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; gap: 16px; }
+  .copy li span:last-child { color: var(--text-3); font-family: var(--mono); font-size: 13px; text-align: right; }
+  .panel { background: var(--bg-2); border: 1px solid var(--line); border-radius: 20px; padding: 28px;
+           position: relative; overflow: hidden; }
+
+  /* layouts visual */
+  .layouts { display: flex; gap: 18px; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+  .lay { text-align: center; font-size: 13px; color: var(--text-3); }
+  .lay svg { display: block; width: 104px; height: auto; margin: 0 auto 12px; }
+  .lay.on { color: var(--text); }
+  .lay.on svg { width: 132px; }
+
+  /* caption samples */
+  .caps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .cap { background: #070707; border-radius: 14px; aspect-ratio: 16 / 10; display: grid; place-items: center;
+         position: relative; overflow: hidden; }
+  .cap::before { content: ""; position: absolute; inset: 0;
+                 background: linear-gradient(180deg, rgba(40,60,50,.55), rgba(20,20,20,.9)); }
+  .cap .txt { position: relative; text-align: center; line-height: 1.1; padding: 0 10px; }
+  .cap .name { position: absolute; left: 12px; bottom: 9px; font-family: var(--mono); font-size: 11px;
+               color: rgba(237,237,232,.55); }
+  .c1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 21px; color: #fff;
+        -webkit-text-stroke: 5px #000; paint-order: stroke fill; }
+  .c1 em { font-style: normal; color: #F7C204; }
+  .c2 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 20px; color: #fff;
+        -webkit-text-stroke: 5px #000; paint-order: stroke fill; }
+  .c2 em { font-style: normal; background: var(--lime); color: #0A0A0A; -webkit-text-stroke: 0;
+           padding: 1px 7px; }
+  .c3 { font-family: 'Anton', sans-serif; font-size: 40px; color: #fff; -webkit-text-stroke: 6px #000;
+        paint-order: stroke fill; letter-spacing: .01em; }
+  .c4 { font-family: 'Luckiest Guy', sans-serif; font-size: 23px; color: #fff; -webkit-text-stroke: 6px #0B0B12;
+        paint-order: stroke fill; letter-spacing: .02em; }
+  .c4 em { font-style: normal; color: #39FF88; }
+
+  /* moment scoring */
+  .score-card { font-size: 14px; }
+  .score-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+               padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .score-top .q { color: var(--text); font-size: 16px; font-weight: 500; }
+  .score-top .q small { display: block; color: var(--text-3); font-size: 12.5px; font-family: var(--mono); font-weight: 400; margin-top: 4px; }
+  .big { font-family: var(--mono); font-size: 40px; letter-spacing: -0.04em; color: var(--lime); line-height: 1; }
+  .reason { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 11px 0;
+            border-bottom: 1px dashed var(--line); color: var(--text-2); }
+  .reason:last-child { border-bottom: 0; }
+  .reason .w { font-family: var(--mono); color: var(--text); }
+  .bar { height: 3px; border-radius: 2px; background: var(--line); margin-top: 7px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--text-2); }
+  .reason:first-of-type .bar i { background: var(--lime); }
 
   /* specs */
-  .specs { width: 100%; border-collapse: collapse; font-size: 15px; }
-  .specs th, .specs td { text-align: left; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .specs th { color: var(--text-3); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
-  .specs td:first-child { color: var(--text); font-weight: 600; }
-  .specs td { color: var(--text-2); }
-  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 22px; background: var(--card); }
+  .specs-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 15px; }
+  th, td { text-align: left; padding: 16px 18px 16px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-weight: 500; color: var(--text); font-size: 15px; padding-bottom: 20px; }
+  thead th small { display: block; font-family: var(--mono); color: var(--text-3); font-size: 12px; font-weight: 400; margin-top: 4px; }
+  tbody th { font-weight: 400; color: var(--text-3); width: 18%; }
+  tbody td { color: var(--text-2); }
+  td.mono { font-size: 14px; }
+  .note { color: var(--text-3); font-size: 14px; margin-top: 22px; max-width: 70ch; }
+
+  /* download */
+  .dl-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); gap: 16px; }
+  @media (max-width: 860px) { .dl-grid { grid-template-columns: 1fr; } }
+  .dl-main { background: var(--bg-2); border: 1px solid var(--line); border-radius: 22px; padding: 40px;
+             display: flex; flex-direction: column; gap: 26px; }
+  .dl-main h3 { font-size: 34px; letter-spacing: -0.035em; margin: 0; font-weight: 700; line-height: 1.05; }
+  .dl-main p { margin: 0; color: var(--text-2); }
+  .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+           padding: 20px 0; border-block: 1px solid var(--line); }
+  .facts div { font-size: 13px; color: var(--text-3); }
+  .facts b { display: block; font-family: var(--mono); font-weight: 500; font-size: 15px; color: var(--text); margin-top: 3px; }
+  .sha { font-size: 12px; color: var(--text-3); word-break: break-all; }
+  .sha span { color: var(--text-2); }
+  .dl-side { border: 1px dashed var(--line-2); border-radius: 22px; padding: 40px; display: flex;
+             flex-direction: column; justify-content: space-between; gap: 28px; }
+  .dl-side h3 { font-size: 24px; letter-spacing: -0.03em; margin: 0 0 8px; font-weight: 600; }
+  .dl-side p { margin: 0; color: var(--text-2); font-size: 15px; }
+  .soon { font-family: var(--mono); font-size: 13px; color: var(--text-3); display: flex; align-items: center; gap: 10px; }
+  .soon::before { content: ""; width: 26px; height: 1px; background: var(--line-2); }
 
   /* faq */
-  details { border: 1px solid var(--line); border-radius: 18px; background: var(--card);
-            padding: 18px 22px; margin-bottom: 12px; }
-  summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
-  summary::-webkit-details-marker { display: none; }
-  summary::after { content: "+"; color: var(--lime); font-size: 22px; line-height: 1; }
-  details[open] summary::after { content: "–"; }
-  details p { color: var(--text-2); margin: 12px 0 0; }
+  .faq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 64px; }
+  @media (max-width: 860px) { .faq { grid-template-columns: 1fr; } }
+  .qa { padding: 26px 0; border-top: 1px solid var(--line); }
+  .qa h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; margin: 0 0 8px; }
+  .qa p { margin: 0; color: var(--text-2); font-size: 15px; }
+  kbd { font-family: var(--mono); font-size: 12.5px; padding: 1px 6px; border-radius: 5px;
+        border: 1px solid var(--line-2); background: var(--bg-3); color: var(--text); }
 
-  footer { border-top: 1px solid var(--line); padding: 36px 0 44px; color: var(--text-3); font-size: 14px; }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; }
-  footer b { color: var(--lime); font-weight: 700; }
+  footer { border-top: 1px solid var(--line); padding: 34px 0 48px; font-size: 14px; color: var(--text-3); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; }
+  footer nav { display: flex; gap: 22px; }
+  footer a { text-decoration: none; color: var(--text-2); }
+  footer a:hover { color: var(--text); }
 
-  @media (prefers-reduced-motion: reduce) { .ph-cap span { animation: none; } html { scroll-behavior: auto; } }
+  /* entry motion */
+  .reveal { opacity: 0; transform: translateY(14px); transition: opacity .7s cubic-bezier(.2,.8,.2,1), transform .7s cubic-bezier(.2,.8,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .live-dot { animation: none; }
+  }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
-<header class="nav">
+<header class="nav" id="nav">
   <div class="wrap">
-    <a class="logo" href="#">
-      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
-        <rect x="1.25" y="1.25" width="33.5" height="33.5" rx="11" stroke="#D1FE17" stroke-width="2.5"/>
-        <path d="M13 11.2v13.6L25 18 13 11.2z" fill="#D1FE17"/>
-      </svg>
-      <span>LiveShive<small>by Haris AI</small></span>
+    <a class="brand" href="#top">
+      <img src="icon.png" alt="" />
+      LiveShive <span class="by">by Haris AI</span>
     </a>
-    <nav class="nav-links">
-      <a href="#features">Features</a>
+    <nav class="nav-links" aria-label="Main">
       <a href="#how">How it works</a>
+      <a href="#features">Features</a>
       <a href="#requirements">Requirements</a>
-      <a href="#faq">FAQ</a>
+      <a class="keep" href="#download">Download</a>
     </nav>
-    <a class="btn btn-lime btn-sm" href="#download">Download</a>
+    <span class="ver mono">v1.0.0</span>
   </div>
 </header>
 
-<main>
-  <div class="hero">
+<main id="main">
+  <div class="hero" id="top">
     <div class="wrap">
-      <div>
-        <span class="pill"><b>NEW</b> Hinglish captions + Screen + Face layout</span>
-        <h1>Your live stream,<br>turned into <em>viral clips</em>.</h1>
-        <p class="lead">Paste a YouTube, Twitch or Kick link. LiveShive records, listens, finds the best
-          moments and exports captioned 9:16 clips while you are still live.</p>
+      <div class="reveal">
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span>For streamers and clippers</div>
+        <h1>Clips from your stream, <span class="soft">while you're still live.</span></h1>
+        <p class="lead">Paste a YouTube, Twitch or Kick link. LiveShive records the stream on your PC,
+          listens for the moments worth posting, and saves them as captioned 9:16 videos ready for
+          TikTok, Reels and Shorts.</p>
         <div class="cta">
-          <a class="btn btn-lime" id="heroDownload"
-             href="https://github.com/Ai-Haris/LiveShive-Releases/releases/latest/download/LiveShive-Setup-Windows-x64.exe">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3v-6zm0 13l7.5 1v-7H3v6zm8.5 1.2L21 21v-8.5h-9.5v7.2zm0-15.4v7.2H21V3l-9.5 1.3z"/></svg>
+          <a class="btn" href="https://github.com/Ai-Haris/LiveShive-Releases/releases/latest/download/LiveShive-Setup-Windows-x64.exe">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.6l7.4-1v7.1H3V5.6zm0 12.8l7.4 1v-7H3v6zm8.4 1.1l9.6 1.3v-8.2h-9.6v6.9zm0-15.1v7.1H21V3.2l-9.6 1.2z"/></svg>
             Download for Windows
           </a>
-          <a class="btn btn-ghost" href="#download">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8 2.2-1.3 3.1-2.5c1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>
-            macOS · Coming soon
-          </a>
-          <div class="cta-note">Free · Windows 10 &amp; 11 (64-bit) · Runs on low-end and high-end PCs</div>
+          <a class="link" href="#download">macOS is coming soon</a>
+        </div>
+        <div class="dl-meta mono">
+          <span>Free</span><span>242 MB</span><span>Windows 10 &amp; 11, 64-bit</span>
         </div>
       </div>
 
-      <div class="phone" aria-label="Example clip: gameplay on top, captions in the middle, streamer below">
-        <div class="ph-bg"></div>
-        <div class="ph-screen"><i class="ph-sun"></i><i class="ph-hill"></i><i class="ph-hud"></i><i class="ph-cam"></i></div>
-        <div class="ph-cap">BHAI YE <span>CLUTCH</span> DEKHO</div>
-        <div class="ph-face"></div>
-        <div class="ph-brand">Haris AI</div>
+      <div class="stage reveal">
+        <div class="phone">
+          <svg class="screen" viewBox="0 0 338 732" role="img"
+               aria-label="Example clip on a phone: gameplay on top, the caption BHAI YE CLUTCH DEKHO in the middle, and the streamer's camera at the bottom">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8FB7D6"/><stop offset=".62" stop-color="#E7D3B0"/><stop offset="1" stop-color="#E9C08E"/>
+              </linearGradient>
+              <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8C8455"/><stop offset="1" stop-color="#5B5A36"/>
+              </linearGradient>
+              <linearGradient id="road" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#9A8C73"/><stop offset="1" stop-color="#6F6553"/>
+              </linearGradient>
+              <linearGradient id="blurbg" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2E3A37"/><stop offset=".5" stop-color="#1B1F1D"/><stop offset="1" stop-color="#101211"/>
+              </linearGradient>
+              <radialGradient id="room" cx=".3" cy=".25" r="1">
+                <stop offset="0" stop-color="#3B2C4A"/><stop offset=".55" stop-color="#1B1622"/><stop offset="1" stop-color="#0D0B10"/>
+              </radialGradient>
+              <linearGradient id="hoodie" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#2A2D33"/><stop offset="1" stop-color="#15171B"/>
+              </linearGradient>
+              <radialGradient id="skin" cx=".4" cy=".35" r=".8">
+                <stop offset="0" stop-color="#C98D67"/><stop offset="1" stop-color="#8E5A3D"/>
+              </radialGradient>
+              <linearGradient id="rim" x1="1" y1="0" x2="0" y2="0">
+                <stop offset="0" stop-color="#D1FE17" stop-opacity=".55"/><stop offset=".35" stop-color="#D1FE17" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="fadeTop" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/>
+              </linearGradient>
+              <linearGradient id="fadeBottom" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".7"/>
+              </linearGradient>
+              <clipPath id="gameClip"><rect x="0" y="92" width="338" height="190"/></clipPath>
+              <clipPath id="faceClip"><rect x="0" y="424" width="338" height="262"/></clipPath>
+              <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+            </defs>
+
+            <!-- blurred backdrop -->
+            <rect width="338" height="732" fill="url(#blurbg)"/>
+
+            <!-- gameplay panel -->
+            <g clip-path="url(#gameClip)">
+              <rect x="0" y="92" width="338" height="190" fill="url(#sky)"/>
+              <path d="M0 200 L40 176 L78 190 L122 160 L168 186 L214 158 L262 182 L300 166 L338 180 L338 230 L0 230Z" fill="#9AA5A2" opacity=".75"/>
+              <path d="M0 214 L52 196 L96 208 L150 188 L206 206 L258 192 L338 204 L338 240 L0 240Z" fill="#7F8A7B"/>
+              <rect x="0" y="222" width="338" height="60" fill="url(#ground)"/>
+              <path d="M150 222 L188 222 L260 282 L96 282Z" fill="url(#road)"/>
+              <path d="M167 232 L171 232 L175 250 L165 250Z" fill="#D8CDB0" opacity=".7"/>
+              <!-- trees -->
+              <g fill="#3F5236">
+                <ellipse cx="46" cy="214" rx="14" ry="18"/><rect x="44" y="226" width="4" height="10" fill="#4A3B2A"/>
+                <ellipse cx="292" cy="210" rx="16" ry="20"/><rect x="290" y="224" width="4" height="12" fill="#4A3B2A"/>
+                <ellipse cx="248" cy="220" rx="9" ry="12" fill="#4B6040"/>
+              </g>
+              <!-- car -->
+              <g transform="translate(118 238)">
+                <path d="M4 22 Q6 10 22 8 L34 0 Q50 -2 66 2 L80 10 Q96 12 98 22 L98 30 L4 30Z" fill="#2F4B63"/>
+                <path d="M36 3 L64 5 L74 11 L30 11Z" fill="#9FC0D6" opacity=".85"/>
+                <circle cx="24" cy="31" r="7" fill="#161616"/><circle cx="78" cy="31" r="7" fill="#161616"/>
+                <circle cx="24" cy="31" r="3" fill="#7A7A7A"/><circle cx="78" cy="31" r="3" fill="#7A7A7A"/>
+              </g>
+              <!-- HUD -->
+              <rect x="0" y="92" width="338" height="30" fill="url(#fadeTop)"/>
+              <g font-family="Geist, sans-serif" font-size="8" fill="#fff">
+                <rect x="8" y="99" width="46" height="13" rx="2" fill="#000" opacity=".45"/>
+                <text x="13" y="108.5">ALIVE 23</text>
+                <rect x="58" y="99" width="40" height="13" rx="2" fill="#000" opacity=".45"/>
+                <text x="63" y="108.5">KILLS 7</text>
+                <text x="210" y="119" font-size="7" opacity=".9">haris ⌖ blaze_77</text>
+              </g>
+              <circle cx="310" cy="118" r="20" fill="#2B3B2E" stroke="#fff" stroke-opacity=".6"/>
+              <path d="M300 112 L318 108 L322 124 L304 128Z" fill="#6E7F5E"/>
+              <circle cx="310" cy="118" r="2.5" fill="#D1FE17"/>
+              <g stroke="#fff" stroke-width="1.2" opacity=".8">
+                <path d="M169 176 v6 M169 190 v6 M160 186 h6 M172 186 h6"/>
+              </g>
+              <rect x="112" y="266" width="114" height="5" rx="2.5" fill="#000" opacity=".5"/>
+              <rect x="112" y="266" width="78" height="5" rx="2.5" fill="#F2F2EC"/>
+              <!-- facecam inside the stream -->
+              <g transform="translate(252 222)">
+                <rect width="78" height="52" rx="3" fill="#1C1824" stroke="#fff" stroke-opacity=".7"/>
+                <ellipse cx="39" cy="24" rx="9" ry="11" fill="url(#skin)"/>
+              <circle cx="35.5" cy="23" r="1" fill="#1A120E"/><circle cx="42.5" cy="23" r="1" fill="#1A120E"/>
+              <path d="M36 29 Q39 31 42 29" stroke="#35170F" stroke-width="1.2" fill="none"/>
+                <path d="M26 52 Q28 36 39 35 Q50 36 52 52Z" fill="#2A2D33"/>
+                <path d="M28 22 Q28 9 39 9 Q50 9 50 22" fill="none" stroke="#111" stroke-width="3"/>
+              </g>
+            </g>
+
+            <!-- caption band -->
+            <g font-family="Montserrat, 'Arial Black', sans-serif" font-weight="900" font-size="25" text-anchor="middle">
+              <g id="capLine" transform="translate(169 360)">
+                <rect id="capBox" x="-22" y="-22" width="44" height="30" fill="#D1FE17"/>
+                <text x="0" y="0" stroke="#000" stroke-width="6" stroke-linejoin="round" paint-order="stroke" fill="#fff">
+                  <tspan class="cap-word" data-i="0">BHAI</tspan> <tspan class="cap-word" data-i="1">YE</tspan> <tspan class="cap-word" data-i="2">CLUTCH</tspan>
+                </text>
+              </g>
+            </g>
+
+            <!-- streamer camera panel -->
+            <g clip-path="url(#faceClip)">
+              <rect x="0" y="424" width="338" height="262" fill="url(#room)"/>
+              <!-- LED strip and shelves -->
+              <rect x="0" y="446" width="338" height="3" fill="#D1FE17" opacity=".55" filter="url(#soft)"/>
+              <rect x="0" y="449" width="338" height="40" fill="#D1FE17" opacity=".05"/>
+              <rect x="22" y="512" width="68" height="3" fill="#2A2330"/>
+              <rect x="30" y="494" width="10" height="18" fill="#3A3150"/><rect x="44" y="498" width="8" height="14" fill="#4C3A2A"/>
+              <rect x="56" y="490" width="12" height="22" fill="#23303A"/>
+              <rect x="262" y="480" width="54" height="36" rx="3" fill="#15121A" stroke="#2F2838"/>
+              <circle cx="289" cy="498" r="6" fill="#D1FE17" opacity=".35"/>
+              <!-- chair -->
+              <path d="M96 686 L100 548 Q104 520 169 518 Q234 520 238 548 L242 686Z" fill="#1A1A1E"/>
+              <path d="M112 686 L114 560 Q118 538 169 536 Q220 538 224 560 L226 686Z" fill="#26262B"/>
+              <!-- person -->
+              <path d="M84 686 Q88 614 132 598 Q150 592 169 592 Q188 592 206 598 Q250 614 254 686Z" fill="url(#hoodie)"/>
+              <path d="M150 596 Q169 616 188 596" fill="none" stroke="#0E0F12" stroke-width="3"/>
+              <rect x="158" y="570" width="22" height="30" rx="8" fill="#8A5639"/>
+              <ellipse cx="169" cy="540" rx="31" ry="38" fill="url(#skin)"/>
+              <path d="M137 532 Q134 494 169 492 Q206 494 202 530 Q196 510 170 508 Q146 508 137 532Z" fill="#17120F"/>
+              <path d="M140 556 Q150 586 169 588 Q188 586 198 556 Q190 576 169 578 Q148 576 140 556Z" fill="#241A14" opacity=".85"/>
+              <!-- face: brows, eyes looking at the screen, nose, mid-shout mouth -->
+              <path d="M148 527 Q156 521 164 525" stroke="#1B120D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+              <path d="M174 525 Q182 521 190 527" stroke="#1B120D" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+              <ellipse cx="157" cy="536" rx="4.2" ry="2.8" fill="#F1E6DC"/>
+              <ellipse cx="181" cy="536" rx="4.2" ry="2.8" fill="#F1E6DC"/>
+              <circle cx="158.5" cy="536" r="2" fill="#1A120E"/>
+              <circle cx="182.5" cy="536" r="2" fill="#1A120E"/>
+              <path d="M170 539 Q166 551 167 553 Q170 555 174 553" stroke="#6E4330" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <path d="M158 562 Q169 559 180 562 Q178 574 169 575 Q160 574 158 562Z" fill="#35170F"/>
+              <path d="M161 563 Q169 561 177 563 L176 565 Q169 564 162 565Z" fill="#EDE3D6"/>
+              <!-- headset -->
+              <path d="M130 540 Q128 486 169 484 Q210 486 208 540" fill="none" stroke="#0B0B0D" stroke-width="7" stroke-linecap="round"/>
+              <rect x="120" y="522" width="17" height="34" rx="8" fill="#101013"/>
+              <rect x="201" y="522" width="17" height="34" rx="8" fill="#101013"/>
+              <rect x="203" y="530" width="3" height="18" rx="1.5" fill="#D1FE17" opacity=".8"/>
+              <path d="M130 552 Q134 578 154 580" fill="none" stroke="#101013" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="156" cy="580" r="4" fill="#101013"/>
+              <!-- rim light -->
+              <path d="M84 686 Q88 614 132 598 Q150 592 169 592 Q188 592 206 598 Q250 614 254 686Z" fill="url(#rim)"/>
+              <ellipse cx="169" cy="540" rx="31" ry="38" fill="url(#rim)" opacity=".7"/>
+              <rect x="0" y="600" width="338" height="86" fill="url(#fadeBottom)"/>
+            </g>
+
+            <!-- app chrome: status bar and feed UI -->
+            <g font-family="Geist, sans-serif" fill="#fff">
+              <text x="34" y="36" font-size="13" font-weight="600">9:41</text>
+              <rect x="128" y="18" width="82" height="24" rx="12" fill="#000"/>
+              <g transform="translate(270 26)" opacity=".95">
+                <rect x="0" y="4" width="3" height="6" rx="1"/><rect x="5" y="2" width="3" height="8" rx="1"/>
+                <rect x="10" y="0" width="3" height="10" rx="1"/>
+                <rect x="20" y="1" width="20" height="9" rx="2.5" fill="none" stroke="#fff" stroke-opacity=".7"/>
+                <rect x="22" y="3" width="14" height="5" rx="1"/>
+              </g>
+              <text x="118" y="74" font-size="13" opacity=".6">Following</text>
+              <text x="190" y="74" font-size="13" font-weight="600">For You</text>
+              <rect x="203" y="80" width="22" height="2" rx="1"/>
+            </g>
+            <!-- right rail -->
+            <g font-family="Geist, sans-serif" fill="#fff" font-size="10" text-anchor="middle">
+              <circle cx="310" cy="470" r="17" fill="#222" stroke="#fff" stroke-width="1.5"/>
+              <image href="icon.png" x="298" y="458" width="24" height="24"/>
+              <path d="M310 506 C300 498 296 492 300 487 C303 483 308 484 310 488 C312 484 317 483 320 487 C324 492 320 498 310 506Z"/>
+              <text x="310" y="520">48.2K</text>
+              <path d="M300 540 h20 a4 4 0 0 1 4 4 v11 a4 4 0 0 1 -4 4 h-12 l-6 5 v-5 h-2 a4 4 0 0 1 -4 -4 v-11 a4 4 0 0 1 4 -4z"/>
+              <text x="310" y="578">1,093</text>
+              <path d="M312 594 l10 9 -10 9 v-5 q-10 0 -16 7 q2 -13 16 -15z"/>
+              <text x="310" y="628">3,417</text>
+            </g>
+            <!-- caption text at the bottom -->
+            <g font-family="Geist, sans-serif" fill="#fff">
+              <text x="18" y="662" font-size="13" font-weight="600">@harisplays</text>
+              <text x="18" y="680" font-size="11.5" opacity=".9">last zone 1v3, never giving up</text>
+              <text x="18" y="697" font-size="11" opacity=".7">♫ original sound · harisplays</text>
+            </g>
+            <rect x="119" y="716" width="100" height="4" rx="2" fill="#fff" opacity=".8"/>
+          </svg>
+        </div>
+        <div class="tag t1 mono">screen <b>16:9</b></div>
+        <div class="tag t2 mono">captions <b>word by word</b></div>
+        <div class="tag t3 mono">face <b>auto-zoomed</b></div>
       </div>
     </div>
   </div>
 
+  <section id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          <div class="label">How it works</div>
+          <h2>Start it before you go live. Post clips after.</h2>
+        </div>
+        <p>LiveShive attaches to the live edge of the stream, not the start of the VOD, so the first
+          clip is ready about a minute after you press start.</p>
+      </div>
+      <div class="timeline reveal">
+        <div class="tick"><div class="t">00:00</div><h3>Paste the link</h3>
+          <p>YouTube, Twitch, Kick, Facebook, a raw .m3u8 or a local file. If you aren't live yet, it waits.</p></div>
+        <div class="tick"><div class="t">00:20</div><h3>It listens</h3>
+          <p>Speech is transcribed word by word on your own CPU. Nothing is uploaded.</p></div>
+        <div class="tick"><div class="t">00:45</div><h3>It picks moments</h3>
+          <p>Hooks, reactions, loud spikes and gameplay highlights get scored and cut on sentence boundaries.</p></div>
+        <div class="tick"><div class="t">~01:00</div><h3>A clip lands</h3>
+          <p>An MP4 with burned-in captions appears in your LiveShive folder, then another, for the whole stream.</p></div>
+      </div>
+    </div>
+  </section>
+
   <section id="features">
     <div class="wrap">
-      <div class="kicker">Features</div>
-      <h2>Everything a clipper needs. Nothing to set up.</h2>
-      <p class="sub">One installer. No Python, no FFmpeg, no command line. Open it, paste a link, and clips start landing in your folder.</p>
-      <div class="grid">
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M5 12a7 7 0 0 1 14 0M2 12a10 10 0 0 1 20 0" stroke-linecap="round"/></svg></div>
-          <h3>Real-time live clipping</h3>
-          <p>Attaches at the live edge of YouTube, Twitch, Kick, Facebook and 1000+ sites. First clip in about a minute.</p>
+      <div class="sec-head reveal">
+        <div>
+          <div class="label">What you get</div>
+          <h2>Made for gaming and talking streams.</h2>
         </div>
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="8" rx="2"/><rect x="6" y="14" width="12" height="8" rx="2"/></svg></div>
-          <h3>Screen + Face layout</h3>
-          <p>Full 16:9 gameplay on top, captions in the middle, your face zoomed in at the bottom. Drag the face box any time.</p>
+        <p>Three things decide whether a short gets watched: the framing, the captions, and where the
+          cut starts. LiveShive handles all three.</p>
+      </div>
+
+      <div class="row reveal">
+        <div class="copy">
+          <h3>Screen on top, your face below.</h3>
+          <p>The Screen + Face layout keeps the full 16:9 gameplay, puts captions in the gap, and zooms
+            in on your camera underneath. Drag the face box if it picks the wrong spot.</p>
+          <ul>
+            <li><span>Screen + Face</span><span>9:16, 4:5</span></li>
+            <li><span>Follow the face</span><span>podcasts, IRL</span></li>
+            <li><span>Centre crop, fit with blur</span><span>everything else</span></li>
+          </ul>
         </div>
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7" stroke-linecap="round"/></svg></div>
-          <h3>Hinglish captions</h3>
-          <p>Hindi and Urdu speech written the way people type: "bhai ye kya ho gaya". English stays English.</p>
+        <div class="panel">
+          <div class="layouts" aria-hidden="true">
+            <div class="lay on">
+              <svg viewBox="0 0 90 160"><rect x="1" y="1" width="88" height="158" rx="10" fill="#0C0C0B" stroke="#D1FE17"/>
+                <rect x="6" y="14" width="78" height="44" rx="2" fill="#6F8A7E"/><rect x="6" y="46" width="78" height="12" fill="#8C8455"/>
+                <rect x="24" y="72" width="42" height="8" fill="#D1FE17"/>
+                <rect x="6" y="94" width="78" height="56" rx="2" fill="#241D2C"/><circle cx="45" cy="117" r="10" fill="#A8704E"/>
+                <path d="M26 150 Q30 131 45 130 Q60 131 64 150Z" fill="#2A2D33"/></svg>
+              Screen + Face
+            </div>
+            <div class="lay">
+              <svg viewBox="0 0 90 160"><rect x="1" y="1" width="88" height="158" rx="10" fill="#0C0C0B" stroke="#33332F"/>
+                <rect x="6" y="6" width="78" height="148" rx="6" fill="#241D2C"/><circle cx="45" cy="66" r="18" fill="#A8704E"/>
+                <path d="M14 154 Q20 100 45 98 Q70 100 76 154Z" fill="#2A2D33"/><rect x="22" y="118" width="46" height="8" fill="#fff" opacity=".8"/></svg>
+              Follow the face
+            </div>
+            <div class="lay">
+              <svg viewBox="0 0 90 160"><rect x="1" y="1" width="88" height="158" rx="10" fill="#0C0C0B" stroke="#33332F"/>
+                <rect x="6" y="6" width="78" height="148" rx="6" fill="#1E2422"/><rect x="6" y="56" width="78" height="46" fill="#6F8A7E"/>
+                <rect x="6" y="88" width="78" height="14" fill="#8C8455"/><rect x="22" y="116" width="46" height="8" fill="#fff" opacity=".8"/></svg>
+              Fit with blur
+            </div>
+          </div>
         </div>
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.6 5.6L20 9.3l-4 3.9 1 5.8-5-2.8-5 2.8 1-5.8-4-3.9 5.4-.7L12 3z" stroke-linejoin="round"/></svg></div>
-          <h3>12 trending caption styles</h3>
-          <p>Bold Viral, Lime Box, Word-by-Word, Gaming and more. Change font, colours, animation and position in Caption Studio.</p>
+      </div>
+
+      <div class="row flip reveal">
+        <div class="copy">
+          <h3>Captions people actually read.</h3>
+          <p>Twelve styles based on what works on TikTok, Reels and Shorts right now: heavy type, one
+            highlight colour, a few words at a time, kept clear of the app buttons. Change the font,
+            colours, animation and position in Caption Studio.</p>
+          <ul>
+            <li><span>Hindi and Urdu speech</span><span>written in Roman Hinglish</span></li>
+            <li><span>English speech</span><span>stays English</span></li>
+            <li><span>Hindi or Urdu script</span><span>if you prefer</span></li>
+          </ul>
         </div>
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke-linejoin="round"/></svg></div>
-          <h3>Finds the best moments</h3>
-          <p>Scores hooks, hype, loud reactions and gameplay moments like clutches and headshots, then cuts clean 18-60 s clips.</p>
+        <div class="caps" aria-label="Caption style samples">
+          <div class="cap"><div class="txt c1">MAZA AA <em>GAYA</em></div><span class="name">bold viral</span></div>
+          <div class="cap"><div class="txt c2">LAST <em>ZONE</em> 1V3</div><span class="name">lime box</span></div>
+          <div class="cap"><div class="txt c3">CLUTCH</div><span class="name">word by word</span></div>
+          <div class="cap"><div class="txt c4">BHAI <em>HEADSHOT</em></div><span class="name">gaming</span></div>
         </div>
-        <div class="card">
-          <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4" stroke-linecap="round"/></svg></div>
-          <h3>Any PC, big or small</h3>
-          <p>Detects your RAM and CPU and picks settings your PC can keep up with. Everything runs on your machine, private and free.</p>
+      </div>
+
+      <div class="row reveal">
+        <div class="copy">
+          <h3>Cuts that start on a hook.</h3>
+          <p>Every clip is whole sentences, 18 to 60 seconds, scored on the opening line, reactions,
+            audio energy and pacing. It won't start a clip on "and" or "toh". Each clip shows why it was picked.</p>
+        </div>
+        <div class="panel score-card">
+          <div class="score-top">
+            <div class="q">"Bhai dekho, last zone mein 1v3 clutch…"<small>clip 014 · 00:34 long · 2:41:07 into stream</small></div>
+            <div class="big">9.4</div>
+          </div>
+          <div class="reason"><div>Hook in the first line<div class="bar"><i style="width:88%"></i></div></div><span class="w">+3.8</span></div>
+          <div class="reason"><div>Gameplay highlight: clutch<div class="bar"><i style="width:64%"></i></div></div><span class="w">+2.6</span></div>
+          <div class="reason"><div>Audio energy spike<div class="bar"><i style="width:41%"></i></div></div><span class="w">+1.7</span></div>
+          <div class="reason"><div>Ends on a complete thought<div class="bar"><i style="width:34%"></i></div></div><span class="w">+1.3</span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="how" style="background: var(--bg-2); border-block: 1px solid var(--line);">
+  <section id="requirements">
     <div class="wrap">
-      <div class="kicker">How it works</div>
-      <h2>Three steps. Then it runs by itself.</h2>
-      <p class="sub">Leave it running for the whole stream. Clips keep arriving with captions already burned in.</p>
-      <div class="steps">
-        <div class="step"><h3>Install</h3><p>Download the Windows installer and open LiveShive from your desktop.</p></div>
-        <div class="step"><h3>Paste your link</h3><p>Any live or recorded stream. Not live yet? It waits and starts the moment you go live.</p></div>
-        <div class="step"><h3>Pick the look</h3><p>Choose 9:16, Screen + Face and a caption style. Hit Start clipping.</p></div>
-        <div class="step"><h3>Post the clips</h3><p>Ready-to-post MP4s land in your LiveShive folder, titled and captioned.</p></div>
+      <div class="sec-head reveal">
+        <div>
+          <div class="label">Requirements</div>
+          <h2>Runs on a five-year-old laptop too.</h2>
+        </div>
+        <p>On first launch LiveShive reads your RAM and CPU and picks a mode it can keep up with. No
+          graphics card needed. You can switch modes in Settings.</p>
       </div>
+      <div class="specs-wrap reveal">
+        <table>
+          <thead>
+            <tr><th></th>
+              <th>Light<small>older and budget PCs</small></th>
+              <th>Balanced<small>most PCs</small></th>
+              <th>Power<small>strong desktops</small></th></tr>
+          </thead>
+          <tbody>
+            <tr><th>Memory</th><td class="mono">4–7 GB</td><td class="mono">8–15 GB</td><td class="mono">16 GB +</td></tr>
+            <tr><th>Processor</th><td class="mono">2–4 threads</td><td class="mono">6–10 threads</td><td class="mono">12 threads +</td></tr>
+            <tr><th>Clip quality</th><td>720p</td><td>1080p</td><td>1080p</td></tr>
+            <tr><th>Speech model</th><td>Base</td><td>Base, Small for Hinglish</td><td>Small, Medium for Hinglish</td></tr>
+            <tr><th>System</th><td colspan="3">Windows 10 or 11, 64-bit · about 3 GB free disk space, more for long streams</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">The speech model downloads once the first time you clip, between 140 MB and 1.5 GB
+        depending on the mode. After that LiveShive only needs internet to record the stream.</p>
     </div>
   </section>
 
   <section id="download">
     <div class="wrap">
-      <div class="kicker">Download</div>
-      <h2>Get LiveShive</h2>
-      <p class="sub">Version 1.0.0. The installer includes everything the app needs.</p>
-      <div class="download">
-        <div class="dl win">
-          <div class="os">
-            <svg viewBox="0 0 24 24" fill="#D1FE17" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3v-6zm0 13l7.5 1v-7H3v6zm8.5 1.2L21 21v-8.5h-9.5v7.2zm0-15.4v7.2H21V3l-9.5 1.3z"/></svg>
-            Windows
-          </div>
-          <p>Windows 10 and 11, 64-bit.</p>
-          <ul>
-            <li>One-click installer with desktop shortcut</li>
-            <li>FFmpeg and the engine are built in</li>
-            <li>Auto performance mode for low-end PCs</li>
-          </ul>
-          <a class="btn btn-lime"
-             href="https://github.com/Ai-Haris/LiveShive-Releases/releases/latest/download/LiveShive-Setup-Windows-x64.exe">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Download .exe
-          </a>
-          <div class="meta">Or browse <a href="https://github.com/Ai-Haris/LiveShive-Releases/releases">all releases</a>.</div>
+      <div class="sec-head reveal">
+        <div>
+          <div class="label">Download</div>
+          <h2>Free. One installer. Nothing else to set up.</h2>
         </div>
-
-        <div class="dl mac">
-          <span class="soon">Coming soon</span>
-          <div class="os">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2.1-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8s2 .8 3.4.8 2.2-1.3 3.1-2.5c1-1.4 1.4-2.8 1.4-2.9-.1 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>
-            macOS
+        <p>The installer includes the engine and FFmpeg, so you don't need Python or anything else on your PC.</p>
+      </div>
+      <div class="dl-grid reveal">
+        <div class="dl-main">
+          <div>
+            <h3>LiveShive for Windows</h3>
+            <p>Version 1.0.0 · released September 2026</p>
           </div>
-          <p>Apple Silicon and Intel Macs.</p>
-          <ul>
-            <li>Same features as Windows</li>
-            <li>Native build for M1, M2, M3 and M4</li>
-            <li>Watch this page for the release</li>
-          </ul>
-          <span class="btn btn-ghost" aria-disabled="true">Coming soon</span>
+          <div class="facts">
+            <div>Size<b>242 MB</b></div>
+            <div>System<b>Win 10 / 11</b></div>
+            <div>Architecture<b>x64</b></div>
+          </div>
+          <div class="cta">
+            <a class="btn" href="https://github.com/Ai-Haris/LiveShive-Releases/releases/latest/download/LiveShive-Setup-Windows-x64.exe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Download .exe
+            </a>
+            <a class="link" href="https://github.com/Ai-Haris/LiveShive-Releases/releases">Release notes</a>
+          </div>
+          <div class="sha mono">SHA-256 <span>44fb13bbfd59ea78572cd08b6523840f367c9434aec4f689e8c1d16e61da69b5</span></div>
+        </div>
+        <div class="dl-side">
+          <div>
+            <h3>macOS</h3>
+            <p>A native build for Apple Silicon and Intel Macs is in progress. It will be posted here and on the releases page.</p>
+          </div>
+          <div class="soon">Coming soon</div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="requirements" style="padding-top: 20px;">
+  <section id="faq">
     <div class="wrap">
-      <div class="kicker">Requirements</div>
-      <h2>Runs on almost any PC</h2>
-      <p class="sub">LiveShive checks your hardware on first launch and picks a performance mode. You can change it later in Settings.</p>
-      <div class="table-wrap">
-        <table class="specs">
-          <thead><tr><th></th><th>Minimum</th><th>Recommended</th><th>Best (Hinglish, 1080p)</th></tr></thead>
-          <tbody>
-            <tr><td>System</td><td>Windows 10 64-bit</td><td>Windows 11 64-bit</td><td>Windows 11 64-bit</td></tr>
-            <tr><td>Processor</td><td>2 cores / 4 threads</td><td>4 cores / 8 threads</td><td>8 cores / 12+ threads</td></tr>
-            <tr><td>Memory</td><td>4 GB RAM</td><td>8 GB RAM</td><td>16 GB RAM</td></tr>
-            <tr><td>Storage</td><td>3 GB free</td><td>10 GB free</td><td>20 GB free (SSD)</td></tr>
-            <tr><td>Graphics</td><td colspan="3">Not needed. Everything runs on the CPU.</td></tr>
-            <tr><td>Performance mode</td><td>Light · 720p, fast captions</td><td>Balanced · 1080p</td><td>Power · most accurate captions</td></tr>
-            <tr><td>Internet</td><td colspan="3">Needed to record streams. The speech model downloads once on first use.</td></tr>
-          </tbody>
-        </table>
+      <div class="sec-head reveal">
+        <div>
+          <div class="label">Questions</div>
+          <h2>Before you install.</h2>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <section id="faq" style="padding-top: 20px;">
-    <div class="wrap" style="max-width: 860px;">
-      <div class="kicker">FAQ</div>
-      <h2>Questions</h2>
-      <details>
-        <summary>Windows says "Windows protected your PC". Is it safe?</summary>
-        <p>That message appears for new apps that are not code-signed yet. Click <b>More info</b> and then <b>Run anyway</b>. LiveShive runs fully on your computer and never uploads your streams.</p>
-      </details>
-      <details>
-        <summary>Will it work on my old laptop?</summary>
-        <p>Yes. On PCs with less than 8 GB RAM or 4 threads LiveShive switches to Light mode: smaller speech model, 720p clips and the fastest encoder. Clips take a little longer, but it keeps up.</p>
-      </details>
-      <details>
-        <summary>Which streams are supported?</summary>
-        <p>YouTube, Twitch, Kick, Facebook, Rumble and 1000+ other sites, plus raw .m3u8, RTMP and local video files. Members-only streams work with browser cookies enabled in Settings.</p>
-      </details>
-      <details>
-        <summary>Does it support Hindi, Urdu and Hinglish?</summary>
-        <p>Yes. Auto mode keeps English captions in English and writes Hindi or Urdu speech in Roman Hinglish. You can also choose Hindi or Urdu script.</p>
-      </details>
-      <details>
-        <summary>When is the Mac version coming?</summary>
-        <p>The Mac version is in the works. It will appear on this page and on the releases page as soon as it is ready.</p>
-      </details>
-      <details>
-        <summary>Is it free?</summary>
-        <p>Yes, LiveShive is free to download and use.</p>
-      </details>
+      <div class="faq reveal">
+        <div class="qa">
+          <h3>Windows says "Windows protected your PC".</h3>
+          <p>New apps without a paid code-signing certificate get this warning. Click <kbd>More info</kbd>
+            then <kbd>Run anyway</kbd>. The SHA-256 above lets you check the file is the one we published.</p>
+        </div>
+        <div class="qa">
+          <h3>Does it upload my stream anywhere?</h3>
+          <p>No. Recording, transcription and editing all happen on your PC. Clips are saved to the
+            LiveShive folder in your user folder.</p>
+        </div>
+        <div class="qa">
+          <h3>Which platforms can I clip from?</h3>
+          <p>YouTube, Twitch, Kick, Facebook, Rumble and over a thousand other sites, plus .m3u8, RTMP
+            and video files. Members-only streams work with browser cookies turned on in Settings.</p>
+        </div>
+        <div class="qa">
+          <h3>Can I clip someone else's stream?</h3>
+          <p>Technically yes, but only post clips you have permission to use. Most clippers work with
+            the streamer directly.</p>
+        </div>
+        <div class="qa">
+          <h3>My laptop is old. Will it keep up?</h3>
+          <p>Light mode uses a smaller speech model, 720p output and the fastest encoder. Clips arrive a
+            little later on a slow CPU, but recording never falls behind.</p>
+        </div>
+        <div class="qa">
+          <h3>When is the Mac version coming?</h3>
+          <p>It's being built now. Check the releases page, or watch the GitHub repo to get notified.</p>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>© 2026 LiveShive · Built by <b>Haris AI</b></span>
-    <span><a href="https://github.com/Ai-Haris/LiveShive-Releases/releases">Releases</a></span>
+    <span>© 2026 Haris AI. LiveShive is free to use.</span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/Ai-Haris/LiveShive-Releases/releases">Releases</a>
+      <a href="#requirements">Requirements</a>
+      <a href="#faq">FAQ</a>
+    </nav>
   </div>
 </footer>
 
+<script>
+  // Sticky nav border once the page scrolls.
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Fade sections in as they enter the viewport.
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -8% 0px' });
+  document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+
+  // Word-by-word caption in the phone: the lime box follows the spoken word.
+  const lines = [['BHAI', 'YE', 'CLUTCH'], ['DEKHO', '1V3', 'MEIN'], ['MAZA', 'AA', 'GAYA']];
+  const words = [...document.querySelectorAll('.cap-word')];
+  const box = document.getElementById('capBox');
+  let line = 0, word = 0;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function paint() {
+    lines[line].forEach((w, i) => { words[i].textContent = w; });
+    words.forEach((el, i) => el.setAttribute('fill', i === word ? '#0A0A0A' : '#fff'));
+    words.forEach((el, i) => el.setAttribute('stroke-width', i === word ? '0' : '6'));
+    requestAnimationFrame(() => {
+      const b = words[word].getBBox();
+      box.setAttribute('x', (b.x - 6).toFixed(1));
+      box.setAttribute('y', (b.y - 1).toFixed(1));
+      box.setAttribute('width', (b.width + 12).toFixed(1));
+      box.setAttribute('height', (b.height + 2).toFixed(1));
+    });
+  }
+  function step() {
+    word += 1;
+    if (word >= 3) { word = 0; line = (line + 1) % lines.length; }
+    paint();
+  }
+  document.fonts.ready.then(() => {
+    paint();
+    if (!reduce) setInterval(step, 520);
+  });
+</script>
 </body>
 </html>
